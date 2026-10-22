@@ -1,0 +1,65 @@
+{
+  "id": "5238924",
+  "name": "svg1028",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "48591113",
+      "name": "日期",
+      "font_class": "riqi",
+      "unicode": "1023f",
+      "unicode_decimal": 66111
+    },
+    {
+      "icon_id": "48591117",
+      "name": "点赞",
+      "font_class": "dianzan",
+      "unicode": "10240",
+      "unicode_decimal": 66112
+    },
+    {
+      "icon_id": "48591118",
+      "name": "任务",
+      "font_class": "renwu",
+      "unicode": "10241",
+      "unicode_decimal": 66113
+    },
+    {
+      "icon_id": "48591120",
+      "name": "个人中心",
+      "font_class": "gerenzhongxin",
+      "unicode": "10242",
+      "unicode_decimal": 66114
+    },
+    {
+      "icon_id": "48591105",
+      "name": "皮肤",
+      "font_class": "pifu",
+      "unicode": "1023b",
+      "unicode_decimal": 66107
+    },
+    {
+      "icon_id": "48591110",
+      "name": "视频",
+      "font_class": "shipin",
+      "unicode": "1023c",
+      "unicode_decimal": 66108
+    },
+    {
+      "icon_id": "48591111",
+      "name": "会员",
+      "font_class": "huiyuan",
+      "unicode": "1023d",
+      "unicode_decimal": 66109
+    },
+    {
+      "icon_id": "48591114",
+      "name": "首页",
+      "font_class": "shouye",
+      "unicode": "1023e",
+      "unicode_decimal": 66110
+    }
+  ]
+}

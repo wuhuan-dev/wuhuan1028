@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>层叠与继承+盒模型</title>
+    <link rel="stylesheet" href="./stack1028.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="container-title">层叠与继承+盒模型</h2>
+        <!-- 同时拥有class和id的盒子 -->
+        <div class="card-wrap" id="card-wrap">
+            <div class="card">
+                <img src="./img/2.jpg" alt="">
+                <h3>盒模型</h3>
+                <p class="card-desc">盒模型：padding, border, margin</p>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 【修改点1】 将下面的内容移到 div.card-wrap 外面 -->
+        <!-- ========================================== -->
+        <h2>通关游戏答案</h2>
+        <ol>
+            <li>1、plate</li>
+            <li>2、bento</li>
+            <li>3、#fancy</li>
+            <li>4、plate>apple</li>
+            <li>5、#fancy pickle</li>
+            <li>6、apple.small</li>
+            <li>7、orange.small</li>
+            <li>8、bento orange.small</li>
+            <li>9、plate,bento</li>
+            <li>10、*</li>
+            <!-- ========================================== -->
+            <!-- 【修改点2】 修正 li 的结束标签位置，使其一一对应 -->
+            <!-- ========================================== -->
+            <li>11、plate&gt;*</li>
+            <li>12、plate+apple</li>
+        </ol>
+    </div>
+</body>
+</html>

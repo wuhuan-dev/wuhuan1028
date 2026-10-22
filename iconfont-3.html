@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>移动端下导航 · 字体图标</title>
+<link rel="stylesheet" href="font/iconfont.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    min-height: 100vh;
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+
+  /* ===== 页面内容 ===== */
+  .wh_content {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .wh_content h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .wh_content p {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* ===== 顶部导航 ===== */
+  .wh_topnav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+  }
+  .wh_topnav a {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+
+  /* ===== 固定底部导航 ===== */
+  .wh_navbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #e5e5e5;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 1000;
+  }
+  .wh_navbar_inner {
+    display: flex;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .wh_navitem {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0 6px;
+    text-decoration: none;
+    color: #999;
+    position: relative;
+    transition: color .2s;
+  }
+  .wh_navitem:active,
+  .wh_navitem.wh_active {
+    color: #1890ff;
+  }
+  .wh_navitem i {
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .wh_navitem span {
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+
+  /* ===== 数字徽章 ===== */
+  .wh_badge {
+    position: absolute;
+    top: 2px;
+    right: calc(50% - 20px);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: #ff4d4f;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+
+  /* ===== 红点 ===== */
+  .wh_dot {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 16px);
+    width: 8px;
+    height: 8px;
+    background: #ff4d4d;
+    border-radius: 50%;
+  }
+
+  /* ===== 演示区域 ===== */
+  .wh_demo {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 20px;
+  }
+  .wh_demo h2 {
+    font-size: 1rem;
+    margin-bottom: 16px;
+    color: #333;
+  }
+  .wh_demo_item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .wh_demo_item:last-child {
+    border-bottom: none;
+  }
+  .wh_demo_item i {
+    font-size: 24px;
+    color: #1890ff;
+  }
+  .wh_demo_item span {
+    font-size: 0.9rem;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+
+<nav class="wh_topnav">
+  <a href="index.html">← 返回首页</a>
+  <a href="iconfont-4.html">SVG 版本 →</a>
+</nav>
+
+<div class="wh_content">
+  <h1>移动端下导航 · 字体图标</h1>
+  <p>使用 iconfont 字体图标（Font Class 方式）实现的固定底部导航。包含数字徽章和红点提示，自适应不同屏幕宽度。</p>
+
+  <div class="wh_demo">
+    <h2>图标预览</h2>
+    <div class="wh_demo_item">
+      <i class="iconfont icon-shouye"></i>
+      <span>首页 icon-shouye</span>
+    </div>
+    <div class="wh_demo_item">
+      <i class="iconfont icon-shipin"></i>
+      <span>视频 icon-shipin</span>
+    </div>
+    <div class="wh_demo_item">
+      <i class="iconfont icon-renwu"></i>
+      <span>任务 icon-renwu</span>
+    </div>
+    <div class="wh_demo_item">
+      <i class="iconfont icon-gerenzhongxin"></i>
+      <span>个人中心 icon-gerenzhongxin</span>
+    </div>
+  </div>
+</div>
+
+<!-- 固定底部导航 -->
+<nav class="wh_navbar">
+  <div class="wh_navbar_inner">
+    <a href="#" class="wh_navitem wh_active">
+      <i class="iconfont icon-shouye"></i>
+      <span>首页</span>
+    </a>
+    <a href="#" class="wh_navitem">
+      <i class="iconfont icon-shipin"></i>
+      <span>视频</span>
+      <span class="wh_badge">3</span>
+    </a>
+    <a href="#" class="wh_navitem">
+      <i class="iconfont icon-renwu"></i>
+      <span>任务</span>
+      <span class="wh_dot"></span>
+    </a>
+    <a href="#" class="wh_navitem">
+      <i class="iconfont icon-gerenzhongxin"></i>
+      <span>我的</span>
+      <span class="wh_badge">12</span>
+    </a>
+  </div>
+</nav>
+
+</body>
+</html>

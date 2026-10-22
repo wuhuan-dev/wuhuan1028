@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRC "http://at.alicdn.com/t/c/font_5238924_i3yodh2ieu.js"</title>
+    <script src="./font/iconfont.js"></script>
+    <link rel="stylesheet" href="./svg1028.css">
+</head>
+<body>
+    <h2>SVG图标</h2>
+    <div class="tab-nav">
+        <div class="tab-item">
+            <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-dianzan"></use>
+            </svg>
+            <span>点赞</span>
+        </div>
+        <div class="tab-item">
+            <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-pifu"></use>
+            </svg>
+            <span>皮肤</span>
+        </div>
+        <div class="tab-item">
+            <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-huiyuan"></use>
+            </svg>
+            <span>会员</span>
+        </div>
+        <div class="tab-item">
+            <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-riqi"></use>
+            </svg>
+            <span>日期</span>
+        </div>
+        <div class="tab-item">
+            <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-shouye"></use>
+            </svg>
+            <span>首页</span>
+        </div>
+    </div>
+    <script>
+        function changeTab(current){
+            var items = document.getElementsByClassName('tab-item');
+            for(var i=0; i<items.length; i++){
+                items[i].classList.remove('active');
+            }
+            items[index].classList.add('active');
+        }
+    </script>
+</body>
+</html>

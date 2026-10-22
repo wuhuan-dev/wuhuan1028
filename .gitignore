@@ -1,0 +1,7 @@
+.opencode/
+node_modules/
+*.exe
+*.dll
+*.zip
+*.pdf
+*.docx

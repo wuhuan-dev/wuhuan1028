@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>H5语义布局实践作业</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(135deg,#eef2ff,#f5f7fa 50%,#ecf9f0);font-family:"Microsoft YaHei",sans-serif;color:#333;line-height:1.6;padding-bottom:100px}
+a{text-decoration:none;color:inherit}
+.container{width:1200px;margin:30px auto;padding:30px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(80,90,180,.12)}
+h1{text-align:center;margin-bottom:40px;font-size:26px;background:linear-gradient(90deg,#409eff,#7b5cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.part{margin-bottom:50px;padding-bottom:24px;border-bottom:1px solid #eef0f6}
+.part:last-child{border-bottom:none}
+.part h2{font-size:19px;margin-bottom:20px;padding:10px 14px;border-radius:8px;color:#fff}
+.t-red h2{background:linear-gradient(90deg,#f56c6c,#ff8a8a)}
+.t-blue h2{background:linear-gradient(90deg,#409eff,#6cb6ff)}
+.t-green h2{background:linear-gradient(90deg,#67c23a,#85ce61)}
+.t-orange h2{background:linear-gradient(90deg,#e6a23c,#f0b860)}
+.part h3{font-size:16px;margin:22px 0 12px;color:#5a5f6b;border-left:4px solid #409eff;padding-left:10px}
+table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:14px;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #eef0f6;vertical-align:top}
+thead th{color:#fff;font-weight:700}
+.tbl-red thead th{background:#f56c6c}
+.tbl-blue thead th{background:#409eff}
+.tbl-green thead th{background:#67c23a}
+.tbl-orange thead th{background:#e6a23c}
+tbody tr:nth-child(even){background:#fafbff}
+tbody tr:hover{background:#eef6ff}
+.col-q{width:34%;font-weight:700;color:#444}
+.col-a,.col-fix{width:33%}
+.row{margin-bottom:15px}
+.row strong{display:inline-block;width:380px;font-size:15px;vertical-align:top}
+.row code,td code{background:#f0f2f7;padding:2px 6px;border-radius:3px;font-size:13px;color:#c7254e}
+pre{background:#282c34;color:#abb2bf;padding:16px;border-radius:8px;font-size:13px;overflow-x:auto;line-height:1.5}
+.highlight-error{color:#f56c6c;font-weight:700}
+.highlight-fix{color:#67c23a;font-weight:700}
+.photo-box{width:100%;max-width:800px;min-height:160px;border:2px solid #b3e19d;background:linear-gradient(135deg,#f0f9eb,#f7fcf4);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#999;font-size:13px;position:relative;overflow:hidden;margin-top:10px;border-radius:8px;transition:border-color .3s}
+.photo-box img{width:100%;height:100%;object-fit:cover;display:block}
+.upload-btn{cursor:pointer;color:#67c23a;text-decoration:underline;margin-bottom:5px;font-size:14px;font-weight:700}
+.upload-btn:hover{color:#85ce61}
+.upload-input{display:none}
+.upload-tip{font-size:12px;color:#aaa;margin-top:5px}
+.flex-demo{display:flex;gap:8px;margin-top:20px}
+.flex-main,.flex-aside{padding:20px;height:150px;display:flex;align-items:center;justify-content:center;font-weight:700;border-radius:8px}
+.flex-main{width:792px;background:linear-gradient(135deg,#d9ecff,#eaf4ff);color:#409eff}
+.flex-aside{width:400px;background:linear-gradient(135deg,#f0f9eb,#e1f3d8);color:#67c23a}
+.demo-title{font-size:16px;font-weight:700;margin-bottom:15px;color:#5a5f6b}
+.card-grid{display:flex;flex-wrap:wrap;gap:10px}
+.box{width:300px;height:200px;position:relative;overflow:hidden;cursor:pointer;list-style:none;background:linear-gradient(135deg,#c8d6f0,#dfe8f7)}
+.box img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
+.box:hover img{transform:scale(1.2)}
+.box .txt{position:absolute;bottom:0;left:0;width:100%;height:40px;background:rgba(0,0,0,.6);color:#fff;padding:0 15px;transition:all .6s ease;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.box:hover .txt{height:100%;padding:20px}
+.box .txt h3{font-size:16px;margin-bottom:5px}
+.box .txt p{font-size:13px;line-height:1.5;margin:0}
+.box:nth-child(odd):hover .txt{background:rgba(64,158,255,.85)}
+#top-anchor{position:absolute;top:0}
+.back-to-top{position:fixed;bottom:20px;left:20px;width:50px;height:50px;background:linear-gradient(135deg,#409eff,#7b5cff);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:.6;z-index:999;transition:all .3s ease;box-shadow:0 2px 12px rgba(64,158,255,.4)}
+.back-to-top:hover{opacity:1;transform:scale(1.1)}
+.back-to-top::before{content:'';width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:12px solid #fff;margin-top:-5px}
+</style>
+</head>
+<body>
+<div id="top-anchor"></div>
+<div class="container">
+<h1>H5语义布局 + 溢出/隐藏过渡动画 实践作业</h1>
+
+<div class="part t-red"><h2>第一部分：看代码找错（20分）</h2>
+<table class="tbl-red"><thead><tr><th>错误现象</th><th>原代码问题</th><th>修复方案</th></tr></thead><tbody>
+<tr><td class="col-q">图片放大跑出卡片</td><td class="col-a"><span class="highlight-error">.box 缺少属性</span></td><td class="col-fix"><span class="highlight-fix">在 .box 添加 <code>overflow: hidden;</code></span></td></tr>
+<tr><td class="col-q">移出无动画</td><td class="col-a"><span class="highlight-error">transition 只写在 hover 里</span></td><td class="col-fix"><span class="highlight-fix">将 transition 写在 <code>.box img</code> 默认状态中</span></td></tr>
+<tr><td class="col-q">排版错乱</td><td class="col-a"><span class="highlight-error">父容器没写 flex-wrap</span></td><td class="col-fix"><span class="highlight-fix">给父容器添加 <code>flex-wrap: wrap;</code></span></td></tr>
+</tbody></table></div>
+
+<div class="part t-blue"><h2>第二部分：补全代码（40分）</h2>
+<h3>2.1 语义标签填空</h3>
+<table class="tbl-blue"><thead><tr><th>位置说明</th><th>语义标签</th></tr></thead><tbody>
+<tr><td class="col-q">页面顶部头部区域</td><td><code>&lt;header&gt;</code></td></tr>
+<tr><td class="col-q">导航条</td><td><code>&lt;nav&gt;</code></td></tr>
+<tr><td class="col-q">页面唯一主要内容区</td><td><code>&lt;main&gt;</code></td></tr>
+<tr><td class="col-q">侧边栏附属内容</td><td><code>&lt;aside&gt;</code></td></tr>
+<tr><td class="col-q">页面底部版权页脚</td><td><code>&lt;footer&gt;</code></td></tr>
+</tbody></table>
+<h3>2.2 卡片动画补全</h3>
+<table class="tbl-blue"><thead><tr><th>题目要求</th><th>补全内容</th></tr></thead><tbody>
+<tr><td class="col-q">防止放大图片溢出li容器</td><td>li添加属性：<code>overflow: hidden</code></td></tr>
+<tr><td class="col-q">子绝父相，让文字条定位在卡片底部</td><td>li添加属性：<code>position: relative</code></td></tr>
+<tr><td class="col-q">hover图片放大</td><td>选择器：<code>.box img</code> 和 <code>.box:hover img</code></td></tr>
+<tr><td class="col-q">文字高度平滑展开</td><td>写在默认状态，保证移入移出都有过渡动画</td></tr>
+<tr><td class="col-q">奇数卡片悬浮，文字铺满整张卡片</td><td>伪类选择器：<code>:nth-child(odd)</code></td></tr>
+</tbody></table>
+<h3>2.3 flex两栏布局填空</h3>
+<table class="tbl-blue"><thead><tr><th>题目要求</th><th>填写内容</th></tr></thead><tbody>
+<tr><td class="col-q">父容器开启flex</td><td><code>display: flex;</code></td></tr>
+<tr><td class="col-q">设置两栏间隙8px（禁用margin）</td><td><code>gap: 8px;</code></td></tr>
+</tbody></table>
+<div class="flex-demo"><div class="flex-main">主内容区 (792px)</div><div class="flex-aside">侧边栏 (400px)</div></div>
+</div>
+
+<div class="card-grid">
+    <li class="box"><img src="img/1.jpg" alt="图1"><div class="txt"><h3>flex布局</h3><p>版心内两栏弹性排列，无float，间隙用gap。</p></div></li>
+    <li class="box"><img src="img/2.jpg" alt="图2"><div class="txt"><h3>语义标签</h3><p>header/nav/main/aside/footer各司其职。</p></div></li>
+    <li class="box"><img src="img/3.jpg" alt="图3"><div class="txt"><h3>子绝父相</h3><p>文字条使用absolute，li使用relative定位。</p></div></li>
+    <li class="box"><img src="img/4.jpg" alt="图4"><div class="txt"><h3>overflow裁切</h3><p>在li上设置overflow:hidden，防止图片放大溢出。</p></div></li>
+    <li class="box"><img src="img/5.jpg" alt="图5"><div class="txt"><h3>transition过渡</h3><p>写在默认状态，保证移入移出都有平滑动画。</p></div></li>
+    <li class="box"><img src="img/6.jpg" alt="图6"><div class="txt"><h3>transform缩放</h3><p>使用transform:scale(1.2)，不改变实际占位。</p></div></li>
+</div></div>
+
+<div class="part t-green"><h2>第三部分：手写原理简答（25分）</h2>
+<div class="row"><strong>1. 画出父元素relative与子元素absolute的位置关系：</strong></div>
+<div class="row" style="margin-left:20px">
+<div class="photo-box"><img src="png/1.jpg" alt="手写答案：相对定位与绝对定位"></div>
+</div>
+
+<div class="row" style="margin-top:25px"><strong>2. overflow:hidden本节课两个作用分别是什么？</strong></div>
+<div class="row" style="margin-left:20px">
+<div class="photo-box"><img src="png/2.jpg" alt="手写答案：溢出隐藏的作用"></div>
+</div>
+
+<div class="row" style="margin-top:25px"><strong>3. transform:scale(1.2) 会把盒子实际占位变大吗？说明原因：</strong></div>
+<div class="row" style="margin-left:20px">
+<div class="photo-box"><img src="png/3.jpg" alt="手写答案：transform缩放占位"></div>
+</div>
+
+<div class="row" style="margin-top:25px"><strong>4. transition写在hover上，和写在普通选择器上的区别？</strong></div>
+<div class="row" style="margin-left:20px">
+<div class="photo-box"><img src="png/4.jpg" alt="手写答案：过渡属性区别"></div>
+</div>
+
+<div class="row" style="margin-top:25px"><strong>5. 记录写代码遇到的1个bug（不少于30字）：</strong></div>
+<div class="row" style="margin-left:20px">
+<div class="photo-box"><img src="png/5.jpg" alt="手写答案：Bug记录"></div>
+</div>
+</div>
+
+<div class="part t-orange"><h2>第四部分：扩展挑战（15分加分）</h2>
+<p style="margin-bottom:12px;font-size:14px;color:#666">实现左下角回到顶部按钮（纯CSS，无JS）：</p>
+<table class="tbl-orange"><thead><tr><th style="width:18%">项目</th><th>说明</th></tr></thead><tbody>
+<tr><td class="col-q">实现思路</td><td>使用 <code>position: fixed</code> 定位在视口左下角，通过 <code>&lt;a href="#top-anchor"&gt;</code> 配合页面顶部的 <code>id="top-anchor"</code> 实现跳转。</td></tr>
+<tr><td class="col-q">效果预览</td><td>请直接查看页面左下角的蓝色渐变圆形按钮。</td></tr>
+</tbody></table>
+<div class="row" style="margin-top:12px"><strong>实现代码：</strong></div>
+<pre>
+.back-to-top {
+    position: fixed; bottom: 20px; left: 20px;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg,#409eff,#7b5cff); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.6; z-index: 999; transition: all 0.3s;
+}
+.back-to-top:hover { opacity: 1; transform: scale(1.1); }
+</pre>
+</div>
+</div>
+<a href="#top-anchor" class="back-to-top"></a>
+</body>
+</html>

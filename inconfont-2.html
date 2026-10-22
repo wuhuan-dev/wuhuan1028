@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lucide SVG 图标 · 玻璃拟态</title>
+<script src="cdn/lucide/lucide.min.js"></script>
+<style>
+  :root {
+    --wh_bg1: #e0c3fc;
+    --wh_bg2: #8ec5fc;
+    --wh_bg3: #fbc2eb;
+    --wh_card: rgba(255,255,255,.25);
+    --wh_card_hover: rgba(255,255,255,.45);
+    --wh_border: rgba(255,255,255,.4);
+    --wh_text: #1e293b;
+    --wh_muted: #64748b;
+    --wh_accent: #7c3aed;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, var(--wh_bg1) 0%, var(--wh_bg2) 50%, var(--wh_bg3) 100%);
+    background-attachment: fixed;
+    color: var(--wh_text);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== 顶部导航 ===== */
+  .wh_topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 32px;
+  }
+  .wh_topbar a {
+    color: var(--wh_text);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: var(--wh_card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--wh_border);
+    transition: all .25s;
+  }
+  .wh_topbar a:hover {
+    background: var(--wh_card_hover);
+    transform: translateY(-1px);
+  }
+  .wh_topbar .wh_links {
+    display: flex;
+    gap: 12px;
+  }
+
+  /* ===== 标题区 ===== */
+  .wh_header {
+    text-align: center;
+    padding: 64px 24px 48px;
+  }
+  .wh_header h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .wh_header h1 span {
+    color: var(--wh_accent);
+    font-weight: 500;
+  }
+  .wh_header p {
+    font-size: 0.95rem;
+    color: var(--wh_muted);
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ===== 玻璃卡片网格 ===== */
+  .wh_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px 64px;
+  }
+
+  .wh_card {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: var(--wh_card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--wh_border);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(31,38,135,.08);
+    transition: all .3s ease;
+  }
+  .wh_card:hover {
+    background: var(--wh_card_hover);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(31,38,135,.12);
+  }
+
+  .wh_card svg {
+    width: 32px;
+    height: 32px;
+    color: var(--wh_text);
+    stroke-width: 1.5;
+    transition: color .3s;
+  }
+  .wh_card:hover svg {
+    color: var(--wh_accent);
+  }
+
+  .wh_name {
+    font-size: 0.72rem;
+    color: var(--wh_muted);
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  /* ===== 页脚 ===== */
+  .wh_footer {
+    text-align: center;
+    padding: 32px 24px 48px;
+    font-size: 0.75rem;
+    color: var(--wh_muted);
+  }
+  .wh_footer a {
+    color: var(--wh_accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .wh_footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 640px) {
+    .wh_topbar { padding: 16px 20px; flex-direction: column; gap: 12px; }
+    .wh_header { padding: 40px 20px 32px; }
+    .wh_grid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px;
+      padding: 0 20px 48px;
+    }
+    .wh_card { border-radius: 16px; }
+    .wh_card svg { width: 24px; height: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="wh_topbar">
+  <a href="index.html">← 返回首页</a>
+  <div class="wh_links">
+    <a href="iconfont-1.html">Font Awesome</a>
+    <a href="https://lucide.dev" target="_blank" rel="noopener noreferrer">Lucide.dev</a>
+  </div>
+</nav>
+
+<header class="wh_header">
+  <h1>Lucide<br><span>SVG Icons</span></h1>
+  <p>轻量、开源的 SVG 图标集。以玻璃拟态呈现，通透、轻盈、现代。</p>
+</header>
+
+<div class="wh_grid" id="wh_grid">
+  <div class="wh_card"><i data-lucide="home"></i><span class="wh_name">home</span></div>
+  <div class="wh_card"><i data-lucide="user"></i><span class="wh_name">user</span></div>
+  <div class="wh_card"><i data-lucide="settings"></i><span class="wh_name">settings</span></div>
+  <div class="wh_card"><i data-lucide="search"></i><span class="wh_name">search</span></div>
+  <div class="wh_card"><i data-lucide="heart"></i><span class="wh_name">heart</span></div>
+  <div class="wh_card"><i data-lucide="star"></i><span class="wh_name">star</span></div>
+  <div class="wh_card"><i data-lucide="bell"></i><span class="wh_name">bell</span></div>
+  <div class="wh_card"><i data-lucide="mail"></i><span class="wh_name">mail</span></div>
+  <div class="wh_card"><i data-lucide="camera"></i><span class="wh_name">camera</span></div>
+  <div class="wh_card"><i data-lucide="music"></i><span class="wh_name">music</span></div>
+  <div class="wh_card"><i data-lucide="shopping-cart"></i><span class="wh_name">shopping-cart</span></div>
+  <div class="wh_card"><i data-lucide="calendar"></i><span class="wh_name">calendar</span></div>
+  <div class="wh_card"><i data-lucide="cloud"></i><span class="wh_name">cloud</span></div>
+  <div class="wh_card"><i data-lucide="lock"></i><span class="wh_name">lock</span></div>
+  <div class="wh_card"><i data-lucide="phone"></i><span class="wh_name">phone</span></div>
+  <div class="wh_card"><i data-lucide="globe"></i><span class="wh_name">globe</span></div>
+  <div class="wh_card"><i data-lucide="sun"></i><span class="wh_name">sun</span></div>
+  <div class="wh_card"><i data-lucide="moon"></i><span class="wh_name">moon</span></div>
+  <div class="wh_card"><i data-lucide="download"></i><span class="wh_name">download</span></div>
+  <div class="wh_card"><i data-lucide="upload"></i><span class="wh_name">upload</span></div>
+  <div class="wh_card"><i data-lucide="trash-2"></i><span class="wh_name">trash-2</span></div>
+  <div class="wh_card"><i data-lucide="pencil"></i><span class="wh_name">pencil</span></div>
+  <div class="wh_card"><i data-lucide="check"></i><span class="wh_name">check</span></div>
+  <div class="wh_card"><i data-lucide="x"></i><span class="wh_name">x</span></div>
+</div>
+
+<footer class="wh_footer">
+  <span>Lucide v0.454.0 / Inline SVG / Local CDN</span><br>
+  <a href="index.html">返回首页 index.html</a>
+</footer>
+
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>

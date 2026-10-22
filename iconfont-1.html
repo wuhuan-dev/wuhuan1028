@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Awesome 字体图标</title>
+<link rel="stylesheet" href="cdn/fontawesome/css/all.min.css">
+<style>
+  :root {
+    --wh_ink: #1a1a1a;
+    --wh_paper: #f5f0e8;
+    --wh_accent: #c45c3e;
+    --wh_sage: #7a8b7a;
+    --wh_line: rgba(26,26,26,.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--wh_paper);
+    color: var(--wh_ink);
+    line-height: 1.6;
+  }
+
+  /* ===== 左侧固定栏 ===== */
+  .wh_sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 320px;
+    padding: 48px 36px;
+    background: var(--wh_ink);
+    color: var(--wh_paper);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto;
+  }
+  .wh_sidebar h1 {
+    font-family: Georgia, "Noto Serif SC", serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .wh_sidebar h1 em {
+    font-style: italic;
+    color: var(--wh_accent);
+  }
+  .wh_sidebar .wh_desc {
+    font-size: 0.92rem;
+    opacity: 0.75;
+    max-width: 220px;
+    margin-bottom: 32px;
+  }
+  .wh_nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .wh_nav a {
+    color: var(--wh_paper);
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(245,240,232,.18);
+    transition: padding-left .25s, color .25s;
+  }
+  .wh_nav a:hover {
+    color: var(--wh_accent);
+    padding-left: 8px;
+  }
+  .wh_nav a.wh_active {
+    color: var(--wh_accent);
+    border-bottom-color: var(--wh_accent);
+  }
+  .wh_meta {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    opacity: 0.45;
+    text-transform: uppercase;
+  }
+
+  /* ===== 右侧主内容 ===== */
+  .wh_main {
+    margin-left: 320px;
+    padding: 48px 48px 80px;
+  }
+  .wh_section {
+    margin-bottom: 56px;
+  }
+  .wh_section_header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--wh_ink);
+  }
+  .wh_section_header h2 {
+    font-family: Georgia, "Noto Serif SC", serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+  }
+  .wh_section_header span {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.72rem;
+    color: var(--wh_sage);
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== 图标网格：标本卡片 ===== */
+  .wh_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--wh_line);
+  }
+  .wh_card {
+    background: var(--wh_paper);
+    padding: 28px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    transition: background .2s;
+  }
+  .wh_card:hover {
+    background: #ede6d8;
+  }
+  .wh_card i {
+    font-size: 2rem;
+    color: var(--wh_ink);
+    transition: color .2s, transform .3s;
+  }
+  .wh_card:hover i {
+    color: var(--wh_accent);
+    transform: scale(1.12);
+  }
+  .wh_name {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.7rem;
+    color: var(--wh_sage);
+    letter-spacing: 0.02em;
+    text-align: center;
+    word-break: break-all;
+  }
+
+  /* ===== 页脚 ===== */
+  .wh_footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--wh_line);
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.68rem;
+    color: var(--wh_sage);
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 860px) {
+    .wh_sidebar {
+      position: static;
+      width: 100%;
+      padding: 32px 24px;
+    }
+    .wh_main {
+      margin-left: 0;
+      padding: 32px 24px 56px;
+    }
+    .wh_grid {
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+  }
+</style>
+</head>
+<body>
+
+<aside class="wh_sidebar">
+  <div>
+    <h1>Font<br>Awesome<br><em>Specimen</em></h1>
+    <p class="wh_desc">经典字体图标库，以 Webfont 方式载入。本页展示 Solid、Regular、Brands 三组风格，如同翻阅一本活字印刷标本册。</p>
+    <nav class="wh_nav">
+      <a href="index.html">返回首页</a>
+      <a href="inconfont-2.html">Lucide SVG 图标</a>
+      <a href="#wh_solid">Solid 实心</a>
+      <a href="#wh_regular">Regular 线性</a>
+      <a href="#wh_brands">Brands 品牌</a>
+    </nav>
+  </div>
+  <div class="wh_meta">
+    Webfont / CSS Classes<br>
+    Font Awesome 6.5.2
+  </div>
+</aside>
+
+<main class="wh_main">
+
+  <section class="wh_section" id="wh_solid">
+    <div class="wh_section_header">
+      <h2>Solid</h2>
+      <span>fa-solid / 900 weight</span>
+    </div>
+    <div class="wh_grid">
+      <div class="wh_card"><i class="fa-solid fa-house"></i><span class="wh_name">fa-house</span></div>
+      <div class="wh_card"><i class="fa-solid fa-user"></i><span class="wh_name">fa-user</span></div>
+      <div class="wh_card"><i class="fa-solid fa-gear"></i><span class="wh_name">fa-gear</span></div>
+      <div class="wh_card"><i class="fa-solid fa-magnifying-glass"></i><span class="wh_name">fa-magnifying-glass</span></div>
+      <div class="wh_card"><i class="fa-solid fa-heart"></i><span class="wh_name">fa-heart</span></div>
+      <div class="wh_card"><i class="fa-solid fa-star"></i><span class="wh_name">fa-star</span></div>
+      <div class="wh_card"><i class="fa-solid fa-bell"></i><span class="wh_name">fa-bell</span></div>
+      <div class="wh_card"><i class="fa-solid fa-envelope"></i><span class="wh_name">fa-envelope</span></div>
+      <div class="wh_card"><i class="fa-solid fa-camera"></i><span class="wh_name">fa-camera</span></div>
+      <div class="wh_card"><i class="fa-solid fa-music"></i><span class="wh_name">fa-music</span></div>
+      <div class="wh_card"><i class="fa-solid fa-cart-shopping"></i><span class="wh_name">fa-cart-shopping</span></div>
+      <div class="wh_card"><i class="fa-solid fa-calendar"></i><span class="wh_name">fa-calendar</span></div>
+      <div class="wh_card"><i class="fa-solid fa-cloud"></i><span class="wh_name">fa-cloud</span></div>
+      <div class="wh_card"><i class="fa-solid fa-lock"></i><span class="wh_name">fa-lock</span></div>
+      <div class="wh_card"><i class="fa-solid fa-phone"></i><span class="wh_name">fa-phone</span></div>
+      <div class="wh_card"><i class="fa-solid fa-globe"></i><span class="wh_name">fa-globe</span></div>
+    </div>
+  </section>
+
+  <section class="wh_section" id="wh_regular">
+    <div class="wh_section_header">
+      <h2>Regular</h2>
+      <span>fa-regular / 400 weight</span>
+    </div>
+    <div class="wh_grid">
+      <div class="wh_card"><i class="fa-regular fa-user"></i><span class="wh_name">fa-user</span></div>
+      <div class="wh_card"><i class="fa-regular fa-heart"></i><span class="wh_name">fa-heart</span></div>
+      <div class="wh_card"><i class="fa-regular fa-star"></i><span class="wh_name">fa-star</span></div>
+      <div class="wh_card"><i class="fa-regular fa-bell"></i><span class="wh_name">fa-bell</span></div>
+      <div class="wh_card"><i class="fa-regular fa-envelope"></i><span class="wh_name">fa-envelope</span></div>
+      <div class="wh_card"><i class="fa-regular fa-calendar"></i><span class="wh_name">fa-calendar</span></div>
+      <div class="wh_card"><i class="fa-regular fa-file"></i><span class="wh_name">fa-file</span></div>
+      <div class="wh_card"><i class="fa-regular fa-folder"></i><span class="wh_name">fa-folder</span></div>
+    </div>
+  </section>
+
+  <section class="wh_section" id="wh_brands">
+    <div class="wh_section_header">
+      <h2>Brands</h2>
+      <span>fa-brands / 400 weight</span>
+    </div>
+    <div class="wh_grid">
+      <div class="wh_card"><i class="fa-brands fa-github"></i><span class="wh_name">fa-github</span></div>
+      <div class="wh_card"><i class="fa-brands fa-apple"></i><span class="wh_name">fa-apple</span></div>
+      <div class="wh_card"><i class="fa-brands fa-android"></i><span class="wh_name">fa-android</span></div>
+      <div class="wh_card"><i class="fa-brands fa-chrome"></i><span class="wh_name">fa-chrome</span></div>
+      <div class="wh_card"><i class="fa-brands fa-weixin"></i><span class="wh_name">fa-weixin</span></div>
+      <div class="wh_card"><i class="fa-brands fa-bilibili"></i><span class="wh_name">fa-bilibili</span></div>
+      <div class="wh_card"><i class="fa-brands fa-youtube"></i><span class="wh_name">fa-youtube</span></div>
+      <div class="wh_card"><i class="fa-brands fa-steam"></i><span class="wh_name">fa-steam</span></div>
+    </div>
+  </section>
+
+  <footer class="wh_footer">
+    Designed as a type specimen / Font Awesome via local CDN
+  </footer>
+
+</main>
+
+</body>
+</html>
