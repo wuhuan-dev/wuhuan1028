@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-02 14:53
+  使用模型: Kimi-K3
+  功能名称及简介: 旅游投诉新闻选项卡 - 三个 tab（最新投诉/官方回应/追踪调查），
+                  一比一还原课堂测试 9 的三张图片效果；复用 js/tabs.js 可复用组件。
+-->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅游投诉新闻</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "SimSun", sans-serif;
+            background: #f4f4f4;
+            color: #333;
+            min-height: 100vh;
+            padding: 30px 16px;
+        }
+
+        .wh_page {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .wh_back {
+            display: inline-block;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #888;
+            text-decoration: none;
+        }
+
+        .wh_back:hover {
+            color: #c00;
+        }
+
+        /* 选项卡容器 —— 贴近原图，白色卡片 */
+        .wh_tabs {
+            background: #fff;
+            border: 1px solid #ddd;
+        }
+
+        /* 选项卡按钮栏 */
+        .wh_tab_nav {
+            display: flex;
+            border-bottom: 2px solid #e8e8e8;
+        }
+
+        .wh_tab_btn {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            background: #fff;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            position: relative;
+            font-weight: 400;
+        }
+
+        .wh_tab_btn:hover {
+            color: #c00;
+        }
+
+        /* 选中状态：红色文字 + 红色下划线 */
+        .wh_tab_btn.wh_active {
+            color: #c00;
+            font-weight: 700;
+        }
+
+        .wh_tab_btn.wh_active::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 2px;
+            background: #c00;
+        }
+
+        /* 面板 */
+        .wh_tab_panel {
+            display: none;
+            padding: 6px 16px 16px;
+        }
+
+        .wh_tab_panel.wh_active {
+            display: block;
+        }
+
+        /* 新闻列表 */
+        .wh_news_list {
+            list-style: none;
+        }
+
+        .wh_news_list li {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 13px;
+            color: #333;
+            line-height: 1.7;
+            position: relative;
+            padding-left: 14px;
+            cursor: pointer;
+        }
+
+        .wh_news_list li:last-child {
+            border-bottom: none;
+        }
+
+        /* 列表前的小方块装饰 */
+        .wh_news_list li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 17px;
+            width: 6px;
+            height: 6px;
+            background: #333;
+        }
+
+        .wh_news_list li:hover {
+            color: #c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="wh_page">
+        <a class="wh_back" href="index.html">← 返回首页</a>
+
+        <div class="wh_tabs">
+            <!-- 选项卡按钮栏 -->
+            <div class="wh_tab_nav">
+                <button class="wh_tab_btn wh_active" data-wh-target="wh_panel_ts">最新投诉</button>
+                <button class="wh_tab_btn" data-wh-target="wh_panel_gf">官方回应</button>
+                <button class="wh_tab_btn" data-wh-target="wh_panel_zs">追踪调查</button>
+            </div>
+
+            <!-- 选项卡面板 -->
+            <div class="wh_tab_panels">
+                <!-- 最新投诉 -->
+                <div class="wh_tab_panel wh_active" id="wh_panel_ts">
+                    <ul class="wh_news_list">
+                        <li>北京火车站出租车乱象调查 司机计价器坏</li>
+                        <li>公园仙境人造字 游客"毁容" 网友推</li>
+                        <li>昆明明湖投诉"辣手摧花" 一市民被划</li>
+                        <li>四川一星级公园遭封 半年未"换装"</li>
+                        <li>北京北海金丝楠木雕遭游客英文签名"破坏</li>
+                        <li>北京动物园门票 游客随意"露痕"</li>
+                        <li>女子不满"无购物"投诉旅行社 东西传一</li>
+                        <li>老年人参团旅游权益受损 旅行社被老对</li>
+                    </ul>
+                </div>
+
+                <!-- 官方回应 -->
+                <div class="wh_tab_panel" id="wh_panel_gf">
+                    <ul class="wh_news_list">
+                        <li>大绿鸭、退房潮热议 法官解读"山寨鸭"是</li>
+                        <li>国家旅游局回应"景区价格体系"</li>
+                        <li>国家旅游局回应"新旅游法实施后旅行社</li>
+                        <li>出游遇纠纷可依《旅游法》 明确旅游投</li>
+                        <li>解读新旅游法三"将制" 首查货照可安心</li>
+                        <li>新旅游法" 控制"零负团费" 和"门票经"</li>
+                        <li>文明旅游纳入旅游合同 行为指南和公约将</li>
+                        <li>天津二季度旅行社服务质量发布 投诉涉及</li>
+                        <li>敦煌:国家法定假日所有景区点免收律</li>
+                    </ul>
+                </div>
+
+                <!-- 追踪调查 -->
+                <div class="wh_tab_panel" id="wh_panel_zs">
+                    <ul class="wh_news_list">
+                        <li>《旅游法》实施半月 自费景区遭正规一日游</li>
+                        <li>追踪香格里拉旅游"怪象": 涉事导游已</li>
+                        <li>导游挣扣新攻略:"逃离旅行社" 自己行</li>
+                        <li>九寨沟为何变成"死胡同"? 数千游客</li>
+                        <li>九寨沟为何仍现游客滞留?</li>
+                        <li>旅游之尴尬:"腾窑"博物馆、女士性感进</li>
+                        <li>记者暗访马布景区: 玉器店玉 过期门票</li>
+                        <li>假冒香港港警卡立通卡 买两女子怒文字</li>
+                        <li>39家旅游单位违法被罚1800万 购物结盟</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 外部引用可复用的选项卡脚本 -->
+    <script src="js/tabs.js"></script>
+</body>
+</html>
