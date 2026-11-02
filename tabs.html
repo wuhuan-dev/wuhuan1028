@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-02 13:39
+  使用模型: Kimi-K3
+  功能名称及简介: 新闻选项卡 - 展示国内新闻、省内新闻、国际新闻、最热新闻四个 tab，
+                  国内新闻为默认选项，JS 单独放在 js/tabs.js 外部引用，组件可复用。
+-->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新闻选项卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: #f2f4f8;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 60px 16px;
+        }
+
+        .wh_page {
+            width: 100%;
+            max-width: 720px;
+        }
+
+        .wh_back {
+            display: inline-block;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        .wh_back:hover {
+            color: #d43030;
+        }
+
+        .wh_title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* 选项卡容器 */
+        .wh_tabs {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        /* 选项卡按钮栏 */
+        .wh_tab_nav {
+            display: flex;
+            border-bottom: 2px solid #eee;
+        }
+
+        .wh_tab_btn {
+            flex: 1;
+            padding: 14px 0;
+            border: none;
+            background: #fff;
+            font-size: 15px;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .wh_tab_btn:hover {
+            color: #d43030;
+        }
+
+        /* 选中状态 */
+        .wh_tab_btn.wh_active {
+            color: #d43030;
+            font-weight: 700;
+        }
+
+        .wh_tab_btn.wh_active::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -2px;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: #d43030;
+            border-radius: 2px;
+        }
+
+        /* 面板 */
+        .wh_tab_panel {
+            display: none;
+            padding: 20px;
+        }
+
+        .wh_tab_panel.wh_active {
+            display: block;
+        }
+
+        .wh_news_item {
+            padding: 12px 4px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            line-height: 1.6;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .wh_news_item:last-child {
+            border-bottom: none;
+        }
+
+        .wh_news_item:hover {
+            color: #d43030;
+            cursor: pointer;
+        }
+
+        .wh_news_date {
+            color: #999;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .wh_hot_tag {
+            display: inline-block;
+            background: #d43030;
+            color: #fff;
+            font-size: 11px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-right: 6px;
+            vertical-align: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wh_page">
+        <a class="wh_back" href="index.html">← 返回首页</a>
+        <h1 class="wh_title">新闻中心</h1>
+
+        <div class="wh_tabs">
+            <!-- 选项卡按钮栏，国内新闻为默认选中项 -->
+            <div class="wh_tab_nav">
+                <button class="wh_tab_btn wh_active" data-wh-target="wh_panel_domestic">国内新闻</button>
+                <button class="wh_tab_btn" data-wh-target="wh_panel_province">省内新闻</button>
+                <button class="wh_tab_btn" data-wh-target="wh_panel_world">国际新闻</button>
+                <button class="wh_tab_btn" data-wh-target="wh_panel_hot">最热新闻</button>
+            </div>
+
+            <!-- 选项卡面板 -->
+            <div class="wh_tab_panels">
+                <div class="wh_tab_panel wh_active" id="wh_panel_domestic">
+                    <div class="wh_news_item"><span>全国科技创新大会在京开幕</span><span class="wh_news_date">11-02</span></div>
+                    <div class="wh_news_item"><span>前三季度国民经济运行数据公布</span><span class="wh_news_date">11-01</span></div>
+                    <div class="wh_news_item"><span>多地出台措施促进冬季旅游消费</span><span class="wh_news_date">10-31</span></div>
+                    <div class="wh_news_item"><span>国家医保药品目录新增品种落地</span><span class="wh_news_date">10-30</span></div>
+                </div>
+
+                <div class="wh_tab_panel" id="wh_panel_province">
+                    <div class="wh_news_item"><span>省内重点交通项目建设提速</span><span class="wh_news_date">11-02</span></div>
+                    <div class="wh_news_item"><span>全省秋粮收购工作全面展开</span><span class="wh_news_date">11-01</span></div>
+                    <div class="wh_news_item"><span>省级数字政务平台上线新功能</span><span class="wh_news_date">10-29</span></div>
+                    <div class="wh_news_item"><span>多所中小学开展科技节活动</span><span class="wh_news_date">10-28</span></div>
+                </div>
+
+                <div class="wh_tab_panel" id="wh_panel_world">
+                    <div class="wh_news_item"><span>多国领导人出席国际气候峰会</span><span class="wh_news_date">11-02</span></div>
+                    <div class="wh_news_item"><span>全球半导体产业合作论坛举行</span><span class="wh_news_date">11-01</span></div>
+                    <div class="wh_news_item"><span>国际航班客运量持续恢复增长</span><span class="wh_news_date">10-30</span></div>
+                    <div class="wh_news_item"><span>世界银行发布全球经济展望报告</span><span class="wh_news_date">10-29</span></div>
+                </div>
+
+                <div class="wh_tab_panel" id="wh_panel_hot">
+                    <div class="wh_news_item"><span><span class="wh_hot_tag">热</span>全国科技创新大会在京开幕</span><span class="wh_news_date">11-02</span></div>
+                    <div class="wh_news_item"><span><span class="wh_hot_tag">热</span>多国领导人出席国际气候峰会</span><span class="wh_news_date">11-02</span></div>
+                    <div class="wh_news_item"><span><span class="wh_hot_tag">热</span>前三季度国民经济运行数据公布</span><span class="wh_news_date">11-01</span></div>
+                    <div class="wh_news_item"><span><span class="wh_hot_tag">热</span>省内重点交通项目建设提速</span><span class="wh_news_date">11-02</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 外部引用可复用的选项卡脚本 -->
+    <script src="js/tabs.js"></script>
+</body>
+</html>
