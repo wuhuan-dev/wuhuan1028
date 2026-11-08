@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-06 17:20
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: Swiper 课堂任务过程记录页 - 汇总任务一（提示词工程两轮迭代与验证）、
+                  任务二（creative 效果自研与 transform 说明）、任务三（新增爱达·魔都号
+                  展品与超纲控件），并附答辩准备问题清单，作为提示词访问入口。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swiper 课堂任务记录 · 提示词与答辩</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#f6f8fc;color:#1f2937;line-height:1.85}
+  .wh_wrap{max-width:960px;margin:0 auto;padding:36px 20px 60px}
+
+  .wh_head{background:linear-gradient(135deg,#0f2b5b,#1d5bbf);border-radius:18px;padding:30px 32px;color:#fff;margin-bottom:24px;box-shadow:0 12px 30px rgba(15,43,91,.28)}
+  .wh_head h1{font-size:26px;letter-spacing:1px;margin-bottom:10px}
+  .wh_head h1 b{color:#ffd166}
+  .wh_head p{font-size:14px;color:#d9e3f5}
+  .wh_head a{color:#ffd166;text-decoration:none;font-size:13.5px}
+
+  .wh_sec{background:#fff;border:1px solid #e8ecf5;border-radius:16px;padding:26px 28px;margin-bottom:22px;box-shadow:0 4px 14px rgba(31,41,55,.06)}
+  .wh_sec > h2{font-size:19px;color:#0f2b5b;margin-bottom:6px}
+  .wh_sec > h2 span{font-size:13px;color:#9ca3af;font-weight:normal;margin-left:8px}
+  .wh_sec h3{font-size:15px;color:#1d4ed8;margin:18px 0 8px}
+  .wh_sec p{font-size:14px;color:#374151;margin-bottom:8px}
+  .wh_sec p b{color:#0f2b5b}
+
+  .wh_prompt{background:#fffbeb;border-left:4px solid #f59e0b;border-radius:8px;padding:12px 16px;font-size:13.5px;color:#7c5e10;margin:8px 0 12px;white-space:pre-wrap}
+  .wh_answer{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin-bottom:12px}
+  .wh_answer .wh_tag{display:inline-block;font-size:12px;color:#0f2b5b;background:#e8f0ff;border-radius:999px;padding:2px 10px;margin-bottom:8px}
+  .wh_code{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:14px 16px;font-family:Consolas,monospace;font-size:12.5px;line-height:1.7;overflow-x:auto;white-space:pre}
+  .wh_code .wh_bad{color:#fca5a5}
+  .wh_code .wh_good{color:#86efac}
+
+  .wh_note{font-size:13.5px;color:#15803d;background:#f0fdf4;border:1.5px dashed #16a34a;border-radius:8px;padding:10px 14px;margin-top:10px}
+
+  /* 验证台 */
+  .wh_demo{max-width:640px;margin:14px auto 0;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(15,43,91,.18)}
+  .wh_demo .swiper-slide{height:280px;position:relative}
+  .wh_demo .swiper-slide img{width:100%;height:100%;object-fit:cover;display:block}
+  .wh_cap{position:absolute;left:0;right:0;bottom:0;padding:30px 18px 12px;color:#fff;background:linear-gradient(transparent,rgba(5,15,35,.82));font-size:14px}
+  .wh_demo .swiper-pagination-bullet{background:#0f2b5b;opacity:.4}
+  .wh_demo .swiper-pagination-bullet-active{background:#e8890c;opacity:1;width:20px;border-radius:6px}
+
+  .wh_qa{margin:6px 0 0}
+  .wh_qa dt{font-size:14px;color:#0f2b5b;font-weight:bold;margin-top:12px}
+  .wh_qa dd{font-size:13.5px;color:#374151;padding-left:14px;border-left:2px solid #dbe4ff;margin:6px 0 0 2px}
+
+  .wh_back{text-align:center;margin-top:26px}
+  .wh_back a{display:inline-block;text-decoration:none;color:#0f2b5b;font-size:14px;font-weight:bold;background:#fff;border:1px solid #dbe4ff;border-radius:999px;padding:10px 24px}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>Swiper 课堂任务记录 · <b>提示词 / 自研效果 / 超纲控件</b></h1>
+    <p>本页是任务的"过程档案"：任务一的提示词迭代与验证、任务二的 creative 自研说明、任务三的展品扩充与控件新增，以及答辩准备清单。</p>
+    <p style="margin-top:8px"><a href="swiper-task.html">→ 查看任务成品页 swiper-task.html</a></p>
+  </div>
+
+  <!-- 任务一 -->
+  <div class="wh_sec">
+    <h2>任务一 · 提示词工程师 <span>让 AI 生成 #wySw4 的配置</span></h2>
+    <p>需求原文四条：<b>① 无需循环</b>；<b>② 3.2 秒自动翻页且手动操作后不停止</b>；<b>③ 圆点分页器可点击</b>；<b>④ 初始效果为 cube</b>。</p>
+
+    <h3>第一轮提示词（我的原文）</h3>
+    <div class="wh_prompt">写一个 Swiper 初始化配置，作用在 id 为 #wySw4 的轮播上：不要循环，3.2 秒自动翻页，分页器可以点击，效果用 cube。</div>
+
+    <h3>AI 第一轮回答</h3>
+    <div class="wh_answer">
+      <span class="wh_tag">第一轮 · 有遗漏</span>
+      <div class="wh_code">new Swiper("#wySw4", {
+  speed: <span class="wh_bad">500</span>,
+  effect: "cube",
+  autoplay: {
+    delay: 3200,
+  },
+  pagination: {
+    el: <span class="wh_bad">undefined</span>,
+    clickable: true,
+  },
+});</div>
+      <p style="font-size:13px;color:#b91c1c;margin-top:8px">问题：① 没有关闭 loop（Swiper 默认虽不循环，但没写 <code>loop: false</code>，语义不明确）；② autoplay 少了 <code>disableOnInteraction: false</code>，用户一拖动自动播放就停了，不满足"手动操作后不停止"；③ 分页器没给 <code>el</code> 选择器，圆点根本不会出现。</p>
+    </div>
+
+    <h3>第二轮提示词（补清楚的三处）</h3>
+    <div class="wh_prompt">在你上一版基础上修正三点：1）必须显式写 loop: false，明确不循环；2）autoplay 里加 disableOnInteraction: false，保证用户手动拖动之后自动播放继续，不要停；3）pagination 必须写 el: "#wyPag4"，否则圆点不显示，clickable 保留 true。其余保持不变。</div>
+
+    <h3>AI 第二轮回答</h3>
+    <div class="wh_answer">
+      <span class="wh_tag">第二轮 · 可运行</span>
+      <div class="wh_code">new Swiper("#wySw4", {
+  loop: <span class="wh_good">false</span>,
+  speed: 800,
+  effect: <span class="wh_good">"cube"</span>,
+  autoplay: {
+    delay: 3200,
+    <span class="wh_good">disableOnInteraction: false</span>,
+  },
+  pagination: {
+    <span class="wh_good">el: "#wyPag4"</span>,
+    clickable: true,
+  },
+});</div>
+    </div>
+
+    <h3>粘贴验证（下面是真实运行的同一份配置）</h3>
+    <div class="wh_demo">
+      <div class="swiper" id="whSwCube">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 第 1 张</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号"><div class="wh_cap">复兴号动车组 · 第 2 张</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919"><div class="wh_cap">C919 大飞机 · 第 3 张</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 第 4 张</div></div>
+        </div>
+        <div class="swiper-pagination" id="whPagCube"></div>
+      </div>
+    </div>
+    <div class="wh_note">
+      验证结论：cube 切换正常、圆点显示且可点；拖动第 4 张后再等待 3.2 秒仍会自动翻页（说明 disableOnInteraction: false 生效）；翻到最后一张不会回到第一张（loop: false 生效）。第一轮的三处遗漏在第二轮全部修正。
+    </div>
+  </div>
+
+  <!-- 任务二 -->
+  <div class="wh_sec">
+    <h2>任务二 · creative 仿写 <span>课堂没讲，自己查官方示例 + AI</span></h2>
+    <p>参考官方示例 <code>swiper/demo/257-effect-creative.html</code>，读懂 <code>creativeEffect</code> 的 transform 写法，在演示四新增第 7 个按钮「creative 自定义」。</p>
+
+    <h3>实施的关键配置</h3>
+    <div class="wh_code">creativeEffect: {
+  prev: {                       // 离场的那一张
+    translate: ["-80%", 0, -300],   // 左移 80% + 沿 Z 轴后退 300px
+    scale: 0.85,                    // 缩小到 85%
+    rotate: [0, 0, -15],            // 逆时针倾斜 15 度（Z 轴）
+    shadow: true,
+  },
+  next: {                       // 进场的那一张
+    translate: ["120%", 0, 0],      // 从右侧 120% 处滑入
+    scale: 1.15,                    // 放大到 115%
+    shadow: true,
+  },
+}</div>
+
+    <h3>我用自己的话总结：prev / next 的 transform 各控制什么？</h3>
+    <dl class="wh_qa">
+      <dt>prev</dt>
+      <dd>控制"即将离开/被推到后面"的那张幻灯片：translate 决定它往哪边退、退多远；rotate 决定倾斜角度；scale 决定缩小还是放大。数值用负数表示往左、往屏幕里退。</dd>
+      <dt>next</dt>
+      <dd>控制"即将进入/被拉到前面"的那张幻灯片：translate 决定它从哪个方向、多远的位置滑进来；scale 决定它入场时是放大还是缩小。</dd>
+    </dl>
+
+    <h3>答辩问题准备</h3>
+    <dl class="wh_qa">
+      <dt>transform 里的百分号是相对谁的？</dt>
+      <dd>相对幻灯片自身的宽度（Swiper 内部换算成容器宽度的百分比），不是相对屏幕或父元素。所以 100% 就等于"整整一张幻灯片的宽度"。translate 的第三个值（z 值）才是像素单位。</dd>
+      <dt>改一个数值让卡片转 20 度试试？</dt>
+      <dd>把 prev 的 <code>rotate: [0, 0, -15]</code> 改成 <code>[0, 0, -20]</code> 即逆时针 20 度；改成正数 20 则是顺时针 20 度。</dd>
+    </dl>
+  </div>
+
+  <!-- 任务三 -->
+  <div class="wh_sec">
+    <h2>任务三 · 综合创作 <span>新增第六件展品 + 超纲控件</span></h2>
+    <h3>① 新增展品：爱达·魔都号（图片由 AI 生成，横版 16:9）</h3>
+    <p>图片生成提示词：</p>
+    <div class="wh_prompt">Website carousel exhibit image (16:9 landscape): A photorealistic aerial view of a massive modern Chinese luxury cruise ship, the Adora Magic City, sailing on the open sea at golden hour. White hull with blue-and-gold decorative hull art, multiple decks, glowing cabin windows, bow wave foam, calm turquoise water, dramatic warm sunset sky with soft clouds, cinematic wide composition, high detail, professional marine photography, sense of scale and grandeur.</div>
+    <p>slide 结构与其他展品完全一致：<code>&lt;div class="swiper-slide"&gt;&lt;img src="swiper-imgs/aida_1.jpg"&gt;&lt;div class="wy-cap"&gt;…&lt;/div&gt;&lt;/div&gt;</code>，四个演示台均已加入该展品。</p>
+
+    <h3>② 超纲控件：keyboard 键盘控制 + mousewheel 滚轮控制</h3>
+    <div class="wh_code">keyboard: {
+  enabled: true,          // 开启键盘操作
+  onlyInViewport: true,   // 只有轮播在视口内时才响应，避免整页滚动时误触
+},
+mousewheel: {
+  enabled: true,
+  forceToAxis: true,      // 只响应水平滚动，避免和页面垂直滚动打架
+},</div>
+
+    <h3>答辩问题准备</h3>
+    <dl class="wh_qa">
+      <dt>这段代码什么意思？</dt>
+      <dd>keyboard 让左右方向键可以切换幻灯片；mousewheel 让鼠标滚轮在轮播上滚动时也能切换。onlyInViewport 与 forceToAxis 都是"防误触"参数，避免和页面本身的滚动冲突。</dd>
+      <dt>AI 第一次给的哪里不对、你改了什么？</dt>
+      <dd>第一版只写了 <code>keyboard: true</code> 与 <code>mousewheel: true</code>，我在页面上试的时候键盘没反应——Swiper 11 里这两项要写成对象并带 <code>enabled: true</code>，改成对象写法后才生效。</dd>
+      <dt>新参数的作用？</dt>
+      <dd><code>onlyInViewport</code>：轮播不在视口内时不响应键盘；<code>forceToAxis</code>：滚轮只沿轮播的主轴方向滚动才切换。</dd>
+      <dt>现场把 delay 改成指定值并解释预期变化</dt>
+      <dd>例如把 <code>delay: 3200</code> 改成 <code>1500</code>，自动翻页变快，大约 1.5 秒换一张；改成 <code>6000</code> 则 6 秒才换一张。delay 的单位是毫秒。</dd>
+    </dl>
+  </div>
+
+  <!-- 答辩清单 -->
+  <div class="wh_sec">
+    <h2>答辩前自查清单</h2>
+    <dl class="wh_qa">
+      <dt>任务一</dt>
+      <dd>能说清第一轮漏了什么（loop 未显式关闭 / 缺 disableOnInteraction / pagination 缺 el），以及第二轮是怎么把需求"说具体"的。</dd>
+      <dt>任务二</dt>
+      <dd>能解释 prev 与 next 的 translate / scale / rotate 各自控制什么，知道百分号相对幻灯片宽度。</dd>
+      <dt>任务三</dt>
+      <dd>能说出第六件展品的图片来源与 slide 结构，能解释 keyboard / mousewheel 相关参数，能现场改 delay 并说出预期变化。</dd>
+    </dl>
+  </div>
+
+  <div class="wh_back">
+    <a href="index.html">← 返回课堂实践中心</a>
+    <a href="swiper-task.html" style="margin-left:10px">查看任务成品页 →</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-06 17:20
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: wh_initVerifySwiper —— 用任务一第二轮的最终配置初始化验证台，
+   *                 用于证明"不循环 + 3.2 秒自动翻页且手动后不停 + 圆点可点 + cube 效果"四项需求均已满足。
+   */
+
+  /**
+   * 功能: wh_initVerifySwiper
+   * 简介: 以任务一第二轮提示词产出的配置初始化 #whSwCube 验证轮播：
+   *       loop: false 表示不循环；autoplay.delay 3200 毫秒且 disableOnInteraction: false
+   *       表示手动拖动后继续自动播放；pagination.el 指向 #whPagCube 并允许点击跳转；
+   *       effect 为 cube 呈现 3D 立方体切换。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-06 17:20
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initVerifySwiper() {
+    var wh_swiper = new Swiper("#whSwCube", {
+      loop: false,
+      speed: 800,
+      effect: "cube",
+      autoplay: {
+        delay: 3200,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: "#whPagCube",
+        clickable: true
+      }
+    });
+  }
+
+  // 页面加载完成后初始化验证台
+  document.addEventListener("DOMContentLoaded", wh_initVerifySwiper);
+</script>
+</body>
+</html>
