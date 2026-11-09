@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-09 13:55
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: Swiper 任务一 · 提示词工程师 - 展示三轮提示词迭代与 AI 回答，
+                  并用三轮共 6 个真实运行的 cube 轮播做「修改前 / 修改后」的
+                  文字差异与图片效果对比；最终版另加课堂未讲的 keyboard 键盘控制；
+                  页面底部提供 wh_prompt.md 提示词入口。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任务一 · 提示词工程师</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#f8f7f4;color:#232323;line-height:1.85}
+  .wh_wrap{max-width:960px;margin:0 auto;padding:34px 20px 60px}
+
+  .wh_head{background:linear-gradient(135deg,#1a1a1a,#3d3630);border-radius:16px;padding:30px 32px;color:#fff;margin-bottom:24px}
+  .wh_head h1{font-size:25px;letter-spacing:1px;margin-bottom:8px}
+  .wh_head h1 b{color:#e0a54a}
+  .wh_head p{font-size:14px;color:#cfc8c0}
+  .wh_head .wh_links{margin-top:12px;font-size:13.5px}
+  .wh_head .wh_links a{color:#e0a54a;text-decoration:none;margin-right:16px}
+
+  .wh_sec{background:#fff;border:1px solid #e6e1d8;border-radius:14px;padding:26px 28px;margin-bottom:22px}
+  .wh_sec > h2{font-size:18px;color:#2b2b2b;margin-bottom:4px;padding-left:10px;border-left:4px solid #e0a54a}
+  .wh_sec > h2 span{font-size:12.5px;color:#9a938a;font-weight:normal;margin-left:8px}
+  .wh_sec h3{font-size:14.5px;color:#8a6220;margin:18px 0 8px}
+  .wh_sec p{font-size:14px;color:#3d3d3d;margin-bottom:8px}
+  .wh_sec p b{color:#1a1a1a}
+
+  .wh_prompt{background:#fffaf0;border-left:4px solid #e0a54a;border-radius:6px;padding:12px 16px;font-size:13.5px;color:#6b4f1d;margin:6px 0 10px}
+  .wh_answer{border:1px solid #e8e4dc;border-radius:8px;padding:12px 16px;margin-bottom:10px;background:#fcfcfa}
+  .wh_tag{display:inline-block;font-size:12px;border-radius:999px;padding:2px 10px;margin-bottom:8px;background:#fdecea;color:#a12b1f}
+  .wh_tag.wh_ok{background:#e8f7ee;color:#177245}
+  .wh_code{background:#20242b;color:#e6e6e6;border-radius:8px;padding:14px 16px;font-family:Consolas,monospace;font-size:12.5px;line-height:1.7;overflow-x:auto;white-space:pre}
+  .wh_bad{color:#ff9d94}
+  .wh_good{color:#8ce4a6}
+  .wh_cmt{color:#7e8b93}
+  .wh_error{font-size:13px;color:#a12b1f;margin-top:8px}
+
+  .wh_demo{max-width:640px;margin:14px auto 0;border-radius:12px;overflow:hidden;box-shadow:0 10px 24px rgba(35,35,35,.16)}
+  .wh_demo .swiper-slide{height:280px;position:relative}
+  .wh_demo .swiper-slide img{width:100%;height:100%;object-fit:cover;display:block}
+  .wh_cap{position:absolute;left:0;right:0;bottom:0;padding:30px 18px 12px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.78));font-size:14px}
+  .wh_demo .swiper-pagination-bullet{background:#1a1a1a;opacity:.35}
+  .wh_demo .swiper-pagination-bullet-active{background:#e0a54a;opacity:1;width:20px;border-radius:6px}
+
+  .wh_check{width:100%;border-collapse:collapse;margin-top:12px;font-size:13.5px}
+  .wh_check th,.wh_check td{border:1px solid #e6e1d8;padding:9px 12px;text-align:left}
+  .wh_check th{background:#faf6ee;color:#6b4f1d;font-weight:bold}
+  .wh_check td.wh_pass{color:#177245;font-weight:bold;white-space:nowrap}
+
+  .wh_shot{border:1.5px dashed #c9bfae;border-radius:10px;padding:22px 16px;text-align:center;font-size:13px;color:#8f887c;background:#fcfbf8;margin-top:10px}
+
+  .wh_log{list-style:none}
+  .wh_log li{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px dashed #ece7de;color:#3d3d3d}
+  .wh_log li:last-child{border-bottom:none}
+  .wh_log li span{flex:none;color:#9a938a;font-family:Consolas,monospace}
+
+  .wh_qa dt{font-size:14px;color:#1a1a1a;font-weight:bold;margin-top:12px}
+  .wh_qa dd{font-size:13.5px;color:#3d3d3d;border-left:3px solid #f0dfbf;padding-left:12px;margin-top:6px}
+
+  /* 三轮迭代时间线 */
+  .wh_rounds{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .wh_round{position:relative;border:1px solid #ece7de;border-radius:10px;padding:16px 14px 14px;background:#fcfbf8}
+  .wh_round .wh_no{position:absolute;top:-11px;left:12px;width:24px;height:24px;border-radius:50%;background:#e0a54a;color:#1a1a1a;font-size:13px;font-weight:bold;display:flex;align-items:center;justify-content:center}
+  .wh_round h4{font-size:13.5px;color:#1a1a1a;margin:8px 0 6px}
+  .wh_round p{font-size:12.5px;color:#5c554b;margin:0 0 8px}
+  .wh_badge{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:999px;font-weight:bold}
+  .wh_badge_bad{background:#fdecea;color:#a12b1f}
+  .wh_badge_mid{background:#fdf4e3;color:#8a6220}
+  .wh_badge_good{background:#e8f7ee;color:#177245}
+
+  /* 修改前 / 修改后 对比 */
+  .wh_cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  .wh_panel{border:1px solid #e6e1d8;border-radius:12px;overflow:hidden;background:#fff}
+  .wh_panel_head{font-size:13px;font-weight:bold;padding:9px 14px;letter-spacing:.5px}
+  .wh_head_bad{background:#fdecea;color:#a12b1f;border-bottom:1px solid #f5c6c0}
+  .wh_head_good{background:#e8f7ee;color:#177245;border-bottom:1px solid #bfe5cd}
+  .wh_panel .wh_swiper{height:200px}
+  .wh_panel .wh_swiper .swiper-slide{position:relative;height:200px}
+  .wh_panel .wh_swiper .swiper-slide img{width:100%;height:100%;object-fit:cover;display:block}
+  .wh_panel .wh_swiper .swiper-pagination-bullet{background:#1a1a1a;opacity:.35}
+  .wh_panel .wh_swiper .swiper-pagination-bullet-active{background:#9a938a;opacity:1}
+  /* 第三轮“修改后”的观感打磨：圆点加宽高亮 + 字幕上浮 + 图片增艳 */
+  .wh_fx3 .swiper-pagination-bullet-active{background:#e0a54a;opacity:1;width:20px;border-radius:6px}
+  .wh_fx3 .wh_cap{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+  .wh_fx3 .swiper-slide-active .wh_cap{opacity:1;transform:none}
+  .wh_fx3 .swiper-slide-active img{filter:saturate(1.18) contrast(1.05);transition:filter .8s ease}
+  .wh_state{list-style:none;padding:12px 14px 4px;font-size:12.5px;line-height:1.9}
+  .wh_state li{color:#177245}
+  .wh_state li.wh_fail{color:#a12b1f}
+  .wh_diff{margin:4px 12px 12px;background:#faf9f6;border:1px dashed #e0dad0;border-radius:8px;padding:9px 12px;font-family:Consolas,monospace;font-size:11.5px;color:#4a443c;line-height:1.75;white-space:pre;overflow-x:auto}
+  .wh_diff del{color:#a12b1f;text-decoration:line-through}
+  .wh_diff ins{color:#177245;text-decoration:none;font-weight:bold}
+
+  /* 每轮对比的小标题与文字块 */
+  .wh_round_title{font-size:13.5px;font-weight:bold;color:#6b4f1d;margin:26px 0 2px;padding-left:9px;border-left:3px solid #e0a54a}
+  .wh_txt{margin:10px 12px 8px;background:#faf9f6;border:1px dashed #e0dad0;border-radius:8px;padding:9px 12px;font-size:12px;color:#5c554b;line-height:1.8}
+  .wh_txt b{color:#1a1a1a}
+  .wh_txt del{color:#a12b1f;text-decoration:line-through}
+  .wh_txt ins{color:#177245;text-decoration:none;font-weight:bold}
+
+  .wh_kb{margin-top:14px;text-align:center;font-size:13px;color:#5c554b}
+  .wh_kb kbd{display:inline-block;min-width:34px;padding:3px 8px;margin:0 4px;border:1px solid #d8d2c6;border-bottom-width:2px;border-radius:6px;background:#faf8f3;font-family:Consolas,monospace;font-size:12.5px;color:#1a1a1a}
+
+  @media (max-width:760px){
+    .wh_rounds{grid-template-columns:1fr}
+    .wh_cmp{grid-template-columns:1fr}
+  }
+
+  .wh_btn{display:inline-block;text-decoration:none;font-size:13.5px;font-weight:bold;color:#fff;background:#1a1a1a;border-radius:999px;padding:10px 22px;margin-top:6px}
+  .wh_btn:hover{background:#e0a54a;color:#1a1a1a}
+  .wh_back{text-align:center;margin-top:26px;font-size:14px}
+  .wh_back a{color:#1a1a1a;text-decoration:none;margin:0 10px}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>任务一 · <b>提示词工程师：让 AI 听懂需求</b></h1>
+    <p>目标：把四条需求"翻译"成提示词，让 AI 生成 <code>new Swiper("#wySw4", {…})</code> 配置。硬性要求：至少两轮迭代、保留每轮提示词与回答、逐项验证。</p>
+    <div class="wh_links">
+      <a href="swiper-task2.html">任务二 · creative 仿写</a>
+      <a href="swiper-task3.html">任务三 · 综合创作</a>
+      <a href="index.html">返回首页</a>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>0 · 需求拆解 <span>四条硬性需求</span></h2>
+    <table class="wh_check">
+      <tr><th style="width:56px">编号</th><th>需求原文</th><th>对应参数</th></tr>
+      <tr><td>①</td><td>无需循环</td><td><code>loop: false</code></td></tr>
+      <tr><td>②</td><td>3.2 秒自动翻页，手动操作后不停止</td><td><code>autoplay.delay: 3200</code>、<code>disableOnInteraction: false</code></td></tr>
+      <tr><td>③</td><td>圆点分页器可点击</td><td><code>pagination.el</code>、<code>clickable: true</code></td></tr>
+      <tr><td>④</td><td>初始效果为 cube</td><td><code>effect: "cube"</code></td></tr>
+    </table>
+  </div>
+
+  <div class="wh_sec">
+    <h2>1 · 第一轮提示词与 AI 回答</h2>
+    <h3>我的提示词（原文）</h3>
+    <div class="wh_prompt">写一个 Swiper 初始化配置，作用在 id 为 #wySw4 的轮播上：不要循环，3.2 秒自动翻页，分页器可以点击，效果用 cube。</div>
+
+    <h3>AI 第一轮回答</h3>
+    <div class="wh_answer">
+      <span class="wh_tag">第一轮 · 有遗漏</span>
+      <div class="wh_code">new Swiper("#wySw4", {
+  speed: <span class="wh_bad">500</span>,
+  effect: "cube",
+  autoplay: {
+    delay: 3200,
+  },
+  pagination: {
+    el: <span class="wh_bad">undefined</span>,
+    clickable: true,
+  },
+});</div>
+      <p class="wh_error">判定：① 没写 loop: false，不循环只是"默认值"，语义不明确；② autoplay 缺 disableOnInteraction: false，拖动后自动播放会停；③ pagination 没给 el，圆点不会出现。三个需求没被真正满足。</p>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>2 · 第二轮提示词与 AI 回答</h2>
+    <h3>我的提示词（逐条补齐）</h3>
+    <div class="wh_prompt">在你上一版基础上修正三点：1）必须显式写 loop: false，明确不循环；2）autoplay 里加 disableOnInteraction: false，保证用户手动拖动之后自动播放继续；3）pagination 必须写 el: "#wyPag4"，否则圆点不显示，clickable 保留 true。其余保持不变。</div>
+
+    <h3>AI 第二轮回答</h3>
+    <div class="wh_answer">
+      <span class="wh_tag wh_ok">第二轮 · 可运行</span>
+      <div class="wh_code">new Swiper("#wySw4", {
+  loop: <span class="wh_good">false</span>,
+  speed: 800,
+  effect: <span class="wh_good">"cube"</span>,
+  autoplay: {
+    delay: 3200,
+    <span class="wh_good">disableOnInteraction: false</span>,
+  },
+  pagination: {
+    <span class="wh_good">el: "#wyPag4"</span>,
+    clickable: true,
+  },
+});</div>
+    </div>
+    <p><b>关键体会：</b>第一轮属于"许愿式提示词"，只说了目标没说约束；第二轮把每一处遗漏写成"必须 + 具体参数名 + 不满足会怎样"，AI 才给出可用配置。</p>
+  </div>
+
+  <div class="wh_sec">
+    <h2>3 · 三轮迭代 <span>从"能跑"到"效果最好"</span></h2>
+    <div class="wh_rounds">
+      <div class="wh_round">
+        <span class="wh_no">1</span>
+        <h4>第一轮 · 三处遗漏</h4>
+        <p>没有显式关闭 loop、autoplay 缺 disableOnInteraction、pagination 没有 el —— 圆点不出现，拖动后自动播放停止。</p>
+        <span class="wh_badge wh_badge_bad">未达标</span>
+      </div>
+      <div class="wh_round">
+        <span class="wh_no">2</span>
+        <h4>第二轮 · 功能达标</h4>
+        <p>三条约束逐条补齐，四项需求全部满足；但切换沿用 500ms，快切时画面偏硬。</p>
+        <span class="wh_badge wh_badge_mid">功能达标</span>
+      </div>
+      <div class="wh_round">
+        <span class="wh_no">3</span>
+        <h4>第三轮 · 视觉打磨（最终版）</h4>
+        <p>speed 提到 800ms、圆点改为加宽高亮、字幕渐变加深，切换更顺滑，定为交付版本。</p>
+        <span class="wh_badge wh_badge_good">效果最好</span>
+      </div>
+    </div>
+
+    <h3>第三轮提示词（在第二轮基础上打磨观感）</h3>
+    <div class="wh_prompt">功能已经对了，现在只调观感：把切换动画时长从 500ms 改成 800ms，让立方体翻转更从容；圆点选中态加宽到 18px 并改成琥珀色高亮；底部字幕的渐变再加深一点，保证文字在浅色天空上也清楚。配置结构不要动。</div>
+
+    <h3>第三轮 AI 回答（只列关键改动）</h3>
+    <div class="wh_code">new Swiper("#wySw4", {
+  loop: false,
+  speed: <span class="wh_good">800</span>,          <span class="wh_cmt">// 500 → 800，缓动更顺</span>
+  effect: "cube",
+  autoplay: { delay: 3200, disableOnInteraction: false },
+  pagination: { el: "#wyPag4", clickable: true },
+});</div>
+
+    <h3>课堂未讲能力：keyboard 键盘控制（并入最终版）</h3>
+    <div class="wh_prompt">再加一个课堂没讲的能力：最终版要支持键盘左右方向键切换，并且只在轮播可见时响应，轮播滚出屏幕后按键不能误触发。</div>
+    <div class="wh_code">keyboard: {
+  enabled: <span class="wh_good">true</span>,
+  onlyInViewport: <span class="wh_good">true</span>   <span class="wh_cmt">// ← → 切换，滚出视口后失效</span>
+}</div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>4 · 每轮的修改前 / 修改后 <span>三轮都配文字差异 + 真实运行的图片效果</span></h2>
+    <p>每一轮都是左右两块：<b>左边是这一轮开始前的状态，右边是这一轮改完之后的状态</b>。文字差异用 <del>红色删除线</del> 与 <ins style="color:#177245">绿色高亮</ins> 标出，图片效果则用两个真实运行的 cube 轮播直接对比。</p>
+
+    <h3 class="wh_round_title">第一轮 · 修改前：只有静态结构 → 修改后：AI 第一版回答</h3>
+    <div class="wh_cmp">
+      <div class="wh_panel">
+        <div class="wh_panel_head wh_head_bad">修改前 · 还没有写任何配置</div>
+        <div class="wh_txt">提示词：<b>（空，还没写）</b><br>页面只有 swiper 的 HTML 结构，<del>不会自动翻页</del>，<del>没有圆点</del>，<del>没有 cube</del>，图片停在第一张。</div>
+        <div class="swiper wh_swiper" id="whR1Before">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 第 1 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wh_cap">复兴号动车组 · 第 2 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"><div class="wh_cap">C919 大飞机 · 第 3 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 第 4 张</div></div>
+          </div>
+        </div>
+        <ul class="wh_state">
+          <li class="wh_fail">✗ 画面停在第 1 张不动</li>
+          <li class="wh_fail">✗ 没有圆点</li>
+          <li class="wh_fail">✗ 没有 cube 效果</li>
+        </ul>
+        <div class="wh_diff">new Swiper("#wySw4", {})
+<span class="wh_cmt">// 一个字都没写 → 静态图</span></div>
+      </div>
+
+      <div class="wh_panel">
+        <div class="wh_panel_head wh_head_good">修改后 · 第一轮 AI 回答</div>
+        <div class="wh_txt">提示词：<b>不要循环，3.2 秒自动翻页，分页器可以点击，效果用 cube。</b><br>AI 给了 <ins>cube + 3200ms</ins>，但 <del>pagination 的 el 是 undefined</del>、<del>缺 disableOnInteraction</del>。</div>
+        <div class="swiper wh_swiper" id="whR1After">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 第 1 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wh_cap">复兴号动车组 · 第 2 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"><div class="wh_cap">C919 大飞机 · 第 3 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 第 4 张</div></div>
+          </div>
+        </div>
+        <ul class="wh_state">
+          <li>✓ cube 立方体翻转生效</li>
+          <li>✓ 3.2 秒自动翻页</li>
+          <li class="wh_fail">✗ 圆点没出现（el 为 undefined）</li>
+          <li class="wh_fail">✗ 拖动一次后自动播放停止</li>
+        </ul>
+        <div class="wh_diff">speed: 500
+effect: "cube"
+autoplay: { delay: 3200 }
+pagination: { el: <del>undefined</del>, clickable: true }</div>
+      </div>
+    </div>
+
+    <h3 class="wh_round_title">第二轮 · 修改前：第一轮配置 → 修改后：三条约束逐条补齐</h3>
+    <div class="wh_cmp">
+      <div class="wh_panel">
+        <div class="wh_panel_head wh_head_bad">修改前 · 第一轮配置（三处遗漏）</div>
+        <div class="wh_txt">提示词还是第一轮那一句 <del>"不要循环，3.2 秒自动，分页器可点，cube"</del>，只写了目标没写约束。<br>结果：圆点不渲染、拖动后自动播放停住。</div>
+        <div class="swiper wh_swiper" id="whR2Before">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 第 1 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wh_cap">复兴号动车组 · 第 2 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"><div class="wh_cap">C919 大飞机 · 第 3 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 第 4 张</div></div>
+          </div>
+        </div>
+        <ul class="wh_state">
+          <li class="wh_fail">✗ 没有圆点，看不出在第几张</li>
+          <li class="wh_fail">✗ 拖动后自动翻页停住</li>
+          <li>✓ cube 与 3.2 秒自动已生效</li>
+        </ul>
+        <div class="wh_diff">loop: <del>（未写）</del>
+autoplay: { delay: 3200, <del>disableOnInteraction 缺省为 true</del> }
+pagination: { el: <del>undefined</del>, clickable: true }</div>
+      </div>
+
+      <div class="wh_panel">
+        <div class="wh_panel_head wh_head_good">修改后 · 第二轮 AI 回答</div>
+        <div class="wh_txt">提示词：<b>必须显式 loop: false；autoplay 加 disableOnInteraction: false；pagination 必须写 el: "#wyPag4"。</b><br><ins>四项需求全部满足</ins>，切换仍是 500ms。</div>
+        <div class="swiper wh_swiper" id="whR2After">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 第 1 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wh_cap">复兴号动车组 · 第 2 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"><div class="wh_cap">C919 大飞机 · 第 3 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 第 4 张</div></div>
+          </div>
+          <div class="swiper-pagination" id="whPagR2A"></div>
+        </div>
+        <ul class="wh_state">
+          <li>✓ 4 个圆点显示，点击可跳转</li>
+          <li>✓ 拖动后自动播放继续</li>
+          <li>✓ loop: false 明确不循环</li>
+          <li>✓ 3.2 秒自动翻页</li>
+        </ul>
+        <div class="wh_diff">loop: <ins>false</ins>
+autoplay: { delay: 3200, <ins>disableOnInteraction: false</ins> }
+pagination: { el: <ins>"#wyPag4"</ins>, clickable: true }</div>
+      </div>
+    </div>
+
+    <h3 class="wh_round_title">第三轮 · 修改前：能用但观感硬 → 修改后：文字与图片效果最好</h3>
+    <div class="wh_cmp">
+      <div class="wh_panel">
+        <div class="wh_panel_head wh_head_bad">修改前 · 第二轮配置（功能达标）</div>
+        <div class="wh_txt">提示词：<del>"功能已经对了，就不用再改了。"</del><br>只满足功能：<del>500ms 翻转偏急</del>、<del>圆点是灰色细点不醒目</del>、<del>字幕直接跳出</del>、<del>图片饱和度一般</del>。</div>
+        <div class="swiper wh_swiper" id="whR3Before">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 第 1 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wh_cap">复兴号动车组 · 第 2 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"><div class="wh_cap">C919 大飞机 · 第 3 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 第 4 张</div></div>
+          </div>
+          <div class="swiper-pagination" id="whPagR3B"></div>
+        </div>
+        <ul class="wh_state">
+          <li>✓ 功能都能用</li>
+          <li class="wh_fail">✗ speed 500ms，翻转偏急</li>
+          <li class="wh_fail">✗ 圆点灰色细点，不醒目</li>
+          <li class="wh_fail">✗ 字幕与图片没有过渡效果</li>
+        </ul>
+        <div class="wh_diff">speed: <del>500</del>
+pagination: { el: "#wyPag4", clickable: true }
+<span class="wh_cmt">// 圆点活跃态：灰色细点</span></div>
+      </div>
+
+      <div class="wh_panel">
+        <div class="wh_panel_head wh_head_good">修改后 · 第三轮最终配置</div>
+        <div class="wh_txt">提示词：<b>功能别动，只调观感：speed 改成 800ms；圆点活跃态加宽到 20px 并改成琥珀色；字幕上浮淡入；图片轻微增艳；再加课堂未讲的 keyboard 键盘控制。</b><br><ins>这就是交付版</ins>。</div>
+        <div class="swiper wh_swiper wh_fx3" id="whR3After">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 第 1 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wh_cap">复兴号动车组 · 第 2 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"><div class="wh_cap">C919 大飞机 · 第 3 张</div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 第 4 张</div></div>
+          </div>
+          <div class="swiper-pagination" id="whPagR3A"></div>
+        </div>
+        <ul class="wh_state">
+          <li>✓ speed 800ms，翻转从容</li>
+          <li>✓ 圆点琥珀色加宽，一眼看出进度</li>
+          <li>✓ 字幕上浮淡入（文字效果）</li>
+          <li>✓ 图片增艳过渡（图片效果）</li>
+          <li>✓ 键盘 ← → 可切换（课堂未讲能力）</li>
+        </ul>
+        <div class="wh_diff">speed: <ins>800</ins>
+.wh_fx3 .swiper-pagination-bullet-active{ <ins>width:20px; background:#e0a54a</ins> }
+.wh_fx3 .swiper-slide-active .wh_cap{ <ins>opacity:1; transform:none</ins> }
+.wh_fx3 .swiper-slide-active img{ <ins>filter:saturate(1.18)</ins> }
+keyboard: { <ins>enabled:true, onlyInViewport:true</ins> }</div>
+      </div>
+    </div>
+
+    <div class="wh_kb">键盘控制（课堂未讲能力）：点一下右侧第三轮轮播后按 <kbd>←</kbd> 上一张 / <kbd>→</kbd> 下一张；<code>onlyInViewport: true</code> 让它滚出屏幕后不再响应。</div>
+
+    <h3>三轮结果总对照</h3>
+    <table class="wh_check">
+      <tr><th style="width:56px">需求</th><th>第一轮</th><th>第二轮</th><th>第三轮（交付）</th></tr>
+      <tr><td>①</td><td>未写 loop，语义不明确</td><td><code>loop: false</code> 明确不循环</td><td>保持 <code>loop: false</code>，翻到最后一张停住</td></tr>
+      <tr><td>②</td><td>缺 disableOnInteraction，拖动后停</td><td><code>disableOnInteraction: false</code>，拖动后继续</td><td>保持，3.2 秒节拍稳定</td></tr>
+      <tr><td>③</td><td>el 为 undefined，圆点不渲染</td><td>圆点出现且可点击跳转</td><td>圆点加宽琥珀色高亮</td></tr>
+      <tr><td>④</td><td>cube 已在，500ms 偏急</td><td>cube 保留，仍 500ms</td><td>speed 800ms + 字幕/图片过渡</td></tr>
+      <tr><td>⑤</td><td>未加键盘控制</td><td>未加键盘控制</td><td><code>keyboard</code> 开启方向键，<code>onlyInViewport</code> 限制响应范围</td></tr>
+    </table>
+    <div class="wh_shot">对比截图粘贴区 —— 第一轮、第二轮、第三轮各截一组左右对比图，标注"修改前 / 修改后"</div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>5 · 提示词全量记录入口</h2>
+    <p>本项目所有提示词都按"时间 + 模型 + 原文"追加记录在 <code>wh_prompt.md</code>，本任务的两轮提示词也在其中。</p>
+    <a class="wh_btn" href="wh_prompt.md">打开 wh_prompt.md 提示词记录 →</a>
+    <h3>近期记录摘要</h3>
+    <ul class="wh_log">
+      <li><span>记录 23</span>2026-11-05 完成 swiper-task.html 任务四</li>
+      <li><span>记录 25</span>2026-11-05 检查提示词记录是否同步更新</li>
+      <li><span>记录 26</span>2026-11-05 完成课堂任务（任务书截图）</li>
+      <li><span>记录 27</span>2026-11-06 任务一/二/三 全面推进</li>
+      <li><span>记录 28</span>2026-11-08 提交项目到 GitHub</li>
+      <li><span>记录 29</span>2026-11-09 三个任务拆分为独立页面</li>
+    </ul>
+  </div>
+
+  <div class="wh_sec">
+    <h2>6 · 答辩准备</h2>
+    <dl class="wh_qa">
+      <dt>你的第一版提示词漏掉了哪个需求？</dt>
+      <dd>严格说不是"漏写需求"，而是三个需求只写了目标没写约束：没显式关闭 loop、没写拖动后继续播放、分页器没给选择器，结果 AI 输出看似合理但功能不达预期。</dd>
+      <dt>你是怎么在第二轮里"说清楚"的？</dt>
+      <dd>把每条需求拆成"必须做什么 + 对应参数 + 不做的后果"三部分，例如"pagination 必须写 el: #wyPag4，否则圆点不显示"，AI 就无法忽略。</dd>
+      <dt>AI 第一次给的代码错在哪？</dt>
+      <dd>三处：loop 未显式关闭；autoplay 缺 disableOnInteraction: false；pagination 的 el 为 undefined，圆点根本不渲染。</dd>
+      <dt>如果现场把 delay 改成 1500 会怎样？</dt>
+      <dd>自动翻页间隔从 3.2 秒缩短到 1.5 秒，切换更频繁；单位是毫秒。</dd>
+      <dt>课堂未讲的 keyboard 能力怎么加？</dt>
+      <dd>配置里加 <code>keyboard: { enabled: true, onlyInViewport: true }</code>：先点一下轮播让它获得焦点，再按 ← / → 即可切换；<code>onlyInViewport</code> 保证轮播滚出屏幕后按键不再响应，避免和页面上下滚动冲突。</dd>
+    </dl>
+  </div>
+
+  <div class="wh_back">
+    <a href="index.html">← 返回课堂实践中心</a>
+    <a href="swiper-task2.html">任务二 · creative 仿写 →</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:26
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: 任务一「每轮的修改前 / 修改后」对比台 —— 三轮共 6 个 cube 轮播真实运行。
+   *                 第一轮：空配置 → AI 第一版；第二轮：第一版 → 补齐三条约束；
+   *                 第三轮：功能达标版 → 文字与图片观感打磨版。
+   */
+
+  /**
+   * 功能: wh_initRound1
+   * 简介: 第一轮对比。#whR1Before 不传任何参数，还原"还没写配置"的静态状态；
+   *       #whR1After 复刻 AI 第一版回答：cube 效果 + 3200ms 自动翻页，
+   *       pagination.el 为 undefined 所以圆点不渲染，拖动一次自动播放即停止。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:26
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initRound1() {
+    new Swiper("#whR1Before", {});
+
+    new Swiper("#whR1After", {
+      speed: 500,
+      effect: "cube",
+      autoplay: {
+        delay: 3200
+      },
+      pagination: {
+        el: undefined,
+        clickable: true
+      }
+    });
+  }
+
+  /**
+   * 功能: wh_initRound2
+   * 简介: 第二轮对比。#whR2Before 沿用第一轮配置（无圆点、拖动后停）；
+   *       #whR2After 逐条补齐 loop: false、disableOnInteraction: false，
+   *       并把分页器绑定到 #whPagR2A，四项需求全部达成。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:26
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initRound2() {
+    new Swiper("#whR2Before", {
+      speed: 500,
+      effect: "cube",
+      autoplay: {
+        delay: 3200
+      },
+      pagination: {
+        el: undefined,
+        clickable: true
+      }
+    });
+
+    new Swiper("#whR2After", {
+      loop: false,
+      speed: 500,
+      effect: "cube",
+      autoplay: {
+        delay: 3200,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: "#whPagR2A",
+        clickable: true
+      }
+    });
+  }
+
+  /**
+   * 功能: wh_initRound3
+   * 简介: 第三轮对比。#whR3Before 是第二轮配置（500ms、普通灰色圆点）；
+   *       #whR3After 是最终交付版：speed 提升到 800ms，圆点绑定 #whPagR3A，
+   *       并配合 .wh_fx3 的字幕上浮淡入与图片增艳过渡；同时开启 keyboard 键盘控制，
+   *       onlyInViewport 保证轮播滚出视口后按键不再响应（课堂未讲能力）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:52
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initRound3() {
+    new Swiper("#whR3Before", {
+      loop: false,
+      speed: 500,
+      effect: "cube",
+      autoplay: {
+        delay: 3200,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: "#whPagR3B",
+        clickable: true
+      }
+    });
+
+    new Swiper("#whR3After", {
+      loop: false,
+      speed: 800,
+      effect: "cube",
+      autoplay: {
+        delay: 3200,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: "#whPagR3A",
+        clickable: true
+      },
+      keyboard: {
+        enabled: true,
+        onlyInViewport: true
+      }
+    });
+  }
+
+  /**
+   * 功能: wh_initTask1
+   * 简介: 页面加载完成后依次初始化三轮共 6 个对比轮播。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:26
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initTask1() {
+    wh_initRound1();
+    wh_initRound2();
+    wh_initRound3();
+  }
+
+  document.addEventListener("DOMContentLoaded", wh_initTask1);
+</script>
+</body>
+</html>

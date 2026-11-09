@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-09 14:06
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: Swiper 任务三 · 综合创作 - ① 按图片要求新增第六件展品"爱达·魔都号"
+                  （AI 生成 16:9 横版图，slide 结构与其他五件一致）；② 按 310-thumbs-gallery-loop.html
+                  的写法实现缩略图画廊（主图 + 缩略图联动），并增加课堂未讲的 keyboard 键盘控制。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任务三 · 综合创作（爱达·魔都号 + 缩略图画廊 + 键盘控制）</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#f4f6fb;color:#1e293b;line-height:1.85}
+  .wh_wrap{max-width:1000px;margin:0 auto;padding:34px 20px 70px}
+
+  .wh_head{background:linear-gradient(135deg,#0b1f3a,#1e40af);border-radius:16px;padding:30px 32px;color:#fff;margin-bottom:24px}
+  .wh_head h1{font-size:25px;letter-spacing:1px;margin-bottom:8px}
+  .wh_head h1 b{color:#fbbf24}
+  .wh_head p{font-size:14px;color:#c7d6f5}
+  .wh_head .wh_links{margin-top:12px;font-size:13.5px}
+  .wh_head .wh_links a{color:#fbbf24;text-decoration:none;margin-right:16px}
+
+  .wh_sec{background:#fff;border:1px solid #e3e9f5;border-radius:14px;padding:26px 28px;margin-bottom:22px;box-shadow:0 4px 14px rgba(15,43,91,.05)}
+  .wh_sec > h2{font-size:18px;color:#0b1f3a;margin-bottom:10px;padding-left:10px;border-left:4px solid #1e40af}
+  .wh_sec > h2 span{font-size:12.5px;color:#94a3b8;font-weight:normal;margin-left:8px}
+  .wh_sec h3{font-size:14.5px;color:#1e40af;margin:18px 0 8px}
+  .wh_sec p{font-size:14px;color:#334155;margin-bottom:8px}
+  .wh_sec p b{color:#0b1f3a}
+
+  .wh_code{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:14px 16px;font-family:Consolas,monospace;font-size:12.5px;line-height:1.75;overflow-x:auto;white-space:pre}
+  .wh_cmt{color:#7b8ca3}
+  .wh_num{color:#fbbf24}
+  .wh_key{color:#93c5fd}
+
+  .wh_cover{max-width:900px;margin:10px auto 0}
+  .wh_cover img{width:100%;border-radius:12px;display:block;box-shadow:0 12px 26px rgba(11,31,58,.18)}
+  .wh_cover p{font-size:12.5px;color:#64748b;text-align:center;margin-top:8px}
+
+  /* 缩略图画廊（主图 + 缩略图联动） */
+  .wh_gallery{margin:16px auto 0;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#0b1f3a,#132a4a);padding:16px 0 8px}
+  .wh_gallery .wh_main{width:100%;height:340px;--swiper-navigation-color:#ffffff}
+  .wh_gallery .wh_main .swiper-slide{position:relative}
+  .wh_gallery .wh_main .swiper-slide img{width:100%;height:100%;object-fit:cover;display:block}
+  .wh_gallery .wh_thumbs{height:86px;box-sizing:border-box;padding:8px 0}
+  .wh_gallery .wh_thumbs .swiper-slide{width:25%;height:100%;opacity:.4;cursor:pointer}
+  .wh_gallery .wh_thumbs .swiper-slide-thumb-active{opacity:1}
+  .wh_gallery .wh_thumbs .swiper-slide img{width:100%;height:100%;object-fit:cover;display:block;border-radius:6px}
+  .wh_cap{position:absolute;left:0;right:0;bottom:0;padding:30px 18px 12px;background:linear-gradient(transparent,rgba(0,0,10,.82));color:#fff;font-size:14px}
+
+  .wh_kb{margin-top:14px;text-align:center;font-size:13px;color:#334155}
+  .wh_kb kbd{display:inline-block;min-width:34px;padding:3px 8px;margin:0 4px;border:1px solid #cbd5e1;border-bottom-width:2px;border-radius:6px;background:#f8fafc;font-family:Consolas,monospace;font-size:12.5px;color:#0b1f3a}
+
+  .wh_table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+  .wh_table th,.wh_table td{border:1px solid #e3e9f5;padding:9px 12px;text-align:left}
+  .wh_table th{background:#f1f5ff;color:#1e40af}
+
+  .wh_prompt{background:#fffbea;border-left:4px solid #f59e0b;border-radius:6px;padding:12px 16px;font-size:13px;color:#7c5e10;margin:6px 0 10px}
+
+  .wh_qa dt{font-size:14px;font-weight:bold;color:#0b1f3a;margin-top:12px}
+  .wh_qa dd{font-size:13.5px;color:#334155;border-left:3px solid #dbe4ff;padding-left:12px;margin-top:6px}
+
+  .wh_back{text-align:center;margin-top:26px;font-size:14px}
+  .wh_back a{color:#0b1f3a;text-decoration:none;margin:0 10px}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>任务三 · <b>综合创作：第六件展品 + 缩略图画廊</b></h1>
+    <p>两件事：① 按图片要求为光影展新增第六件展品"爱达·魔都号"（AI 生成 16:9 图片，slide 结构完整）；② 借用 <code>310-thumbs-gallery-loop.html</code> 的主图 + 缩略图联动效果，并用课堂未讲的 <code>keyboard</code> 键盘控制。</p>
+    <div class="wh_links">
+      <a href="swiper-task1.html">任务一 · 提示词工程师</a>
+      <a href="swiper-task2.html">任务二 · creative 仿写</a>
+      <a href="index.html">返回首页</a>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>1 · 第六件展品：爱达·魔都号 <span>首艘国产大型邮轮 · 2024 年 1 月商业首航</span></h2>
+    <div class="wh_cover">
+      <img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号">
+      <p>AI 生成图片 · 横版 16:9 · swiper-imgs/aida_1.jpg</p>
+    </div>
+
+    <h3>图片生成提示词（AI 绘图）</h3>
+    <div class="wh_prompt">Website carousel exhibit image (16:9 landscape): A photorealistic aerial view of a massive modern Chinese luxury cruise ship, the Adora Magic City, sailing on the open sea at golden hour. White hull with blue-and-gold decorative hull art, multiple decks, glowing cabin windows, bow wave foam, calm turquoise water, dramatic warm sunset sky with soft clouds, cinematic wide composition, high detail, professional marine photography, sense of scale and grandeur.</div>
+
+    <h3>按图片要求逐条核对</h3>
+    <table class="wh_table">
+      <tr><th style="width:140px">图片要求</th><th>本页落实</th></tr>
+      <tr><td>横版 16:9</td><td>AI 生成横版图片 <code>swiper-imgs/aida_1.jpg</code>，<code>object-fit: cover</code> 铺满整张</td></tr>
+      <tr><td>第六件展品</td><td>排在 05 · 中国天眼之后，编号 <b>06</b>，与其他五件同尺寸、同结构</td></tr>
+      <tr><td>slide 结构完整</td><td>仍是 <code>img</code> + <code>wh_cap</code> 字幕两层结构，不新增私有类名</td></tr>
+      <tr><td>标题文字</td><td>"06 · 爱达·魔都号 · 首艘国产大型邮轮"，与画廊中的序号一致</td></tr>
+    </table>
+
+    <h3>slide 结构（与其他五件展品完全一致）</h3>
+    <div class="wh_code">&lt;div class="swiper-slide"&gt;
+  &lt;img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"&gt;
+  &lt;div class="wh_cap"&gt;06 · 爱达·魔都号 · 首艘国产大型邮轮&lt;/div&gt;
+&lt;/div&gt;</div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>2 · 超纲能力：缩略图画廊 + 键盘控制 <span>参考 310-thumbs-gallery-loop.html</span></h2>
+    <p>官方示例的写法要点：<b>两个轮播实例</b>——小轮播 <code>#whSwThumbs</code> 当缩略图条，主轮播 <code>#whSwGallery</code> 用 <code>thumbs: { swiper: … }</code> 与它联动；缩略图用 <code>loop: true</code> + <code>slidesPerView: 4</code> + <code>freeMode</code> 让 10 张图可以横向自由滑动。课堂没讲的 <code>keyboard</code> 能力也加在这里：按 <kbd>←</kbd> <kbd>→</kbd> 就能切换。</p>
+
+    <div class="wh_code"><span class="wh_cmt">// ① 先建缩略图小轮播</span>
+var wh_thumbs = new Swiper(<span class="wh_num">"#whSwThumbs"</span>, {
+  loop: true,
+  spaceBetween: <span class="wh_num">10</span>,
+  slidesPerView: <span class="wh_num">4</span>,
+  freeMode: true,
+  watchSlidesProgress: true,
+});
+
+<span class="wh_cmt">// ② 再建主轮播，并把小轮播交给它</span>
+new Swiper(<span class="wh_num">"#whSwGallery"</span>, {
+  loop: true,
+  spaceBetween: <span class="wh_num">10</span>,
+  navigation: { nextEl: <span class="wh_num">".wh_next"</span>, prevEl: <span class="wh_num">".wh_prev"</span> },
+  keyboard: { enabled: true, onlyInViewport: true },  <span class="wh_cmt">// 课堂未讲能力</span>
+  thumbs: { swiper: wh_thumbs },                      <span class="wh_cmt">// 主图与缩略图联动</span>
+});</div>
+
+    <div class="wh_gallery">
+      <div class="swiper wh_main" id="whSwGallery">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-1.jpg" alt="自然风光 1"><div class="wh_cap">01 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-2.jpg" alt="自然风光 2"><div class="wh_cap">02 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-3.jpg" alt="自然风光 3"><div class="wh_cap">03 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-4.jpg" alt="自然风光 4"><div class="wh_cap">04 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-5.jpg" alt="自然风光 5"><div class="wh_cap">05 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-6.jpg" alt="自然风光 6"><div class="wh_cap">06 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-7.jpg" alt="自然风光 7"><div class="wh_cap">07 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-8.jpg" alt="自然风光 8"><div class="wh_cap">08 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-9.jpg" alt="自然风光 9"><div class="wh_cap">09 · 自然风光</div></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-10.jpg" alt="自然风光 10"><div class="wh_cap">10 · 自然风光</div></div>
+        </div>
+        <div class="swiper-button-prev wh_prev"></div>
+        <div class="swiper-button-next wh_next"></div>
+      </div>
+      <div class="swiper wh_thumbs" id="whSwThumbs">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-1.jpg" alt="缩略图 1"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-2.jpg" alt="缩略图 2"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-3.jpg" alt="缩略图 3"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-4.jpg" alt="缩略图 4"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-5.jpg" alt="缩略图 5"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-6.jpg" alt="缩略图 6"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-7.jpg" alt="缩略图 7"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-8.jpg" alt="缩略图 8"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-9.jpg" alt="缩略图 9"></div>
+          <div class="swiper-slide"><img src="swiper/demo/images/nature-10.jpg" alt="缩略图 10"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wh_kb">键盘控制：点一下主图区域后按 <kbd>←</kbd> 上一张 / <kbd>→</kbd> 下一张；<code>onlyInViewport: true</code> 保证轮播滚出屏幕后按键不再误触发。</div>
+
+    <h3>两个实例为什么必须这样建</h3>
+    <table class="wh_table">
+      <tr><th style="width:150px">参数</th><th>作用</th></tr>
+      <tr><td><code>thumbs.swiper</code></td><td>把缩略图实例交给主轮播，主图切换时缩略图同步高亮（<code>swiper-slide-thumb-active</code>）</td></tr>
+      <tr><td><code>slidesPerView: 4</code></td><td>缩略图条一次露出 4 张，点击任意张主图立刻跳过去</td></tr>
+      <tr><td><code>freeMode</code> + <code>watchSlidesProgress</code></td><td>缩略图可自由滑动、不强制吸附，同时把滑动进度同步给主轮播</td></tr>
+      <tr><td><code>keyboard</code></td><td>开启键盘方向键切换；<code>onlyInViewport</code> 限制只在轮播可见时响应</td></tr>
+    </table>
+  </div>
+
+  <div class="wh_sec">
+    <h2>3 · 与 AI 的关键对话记录</h2>
+    <table class="wh_table">
+      <tr><th style="width:130px">环节</th><th>我的提示词</th><th>AI 给出的关键点 / 我的修正</th></tr>
+      <tr>
+        <td>展品配图</td>
+        <td>"生成一张横版 16:9 的爱达·魔都号大型邮轮照片，黄昏海面、写实风格、电影感构图"</td>
+        <td>AI 给出邮轮航行图；我补充了"白色船体 + 蓝金涂装 + 多甲板」，避免生成普通货轮</td>
+      </tr>
+      <tr>
+        <td>缩略图画廊配置</td>
+        <td>"按 310-thumbs-gallery-loop.html 的写法，用它的 10 张自然风光图做主图 + 缩略图联动的画廊，说明 thumbs.swiper 的作用"</td>
+        <td>AI 先只初始化了主轮播，缩略图点了没反应；补上独立的小轮播实例（<code>loop</code> / <code>spaceBetween</code> / <code>slidesPerView: 4</code> / <code>freeMode</code> / <code>watchSlidesProgress</code>）并把实例交给 <code>thumbs: { swiper: wh_thumbs }</code> 之后才联动</td>
+      </tr>
+      <tr>
+        <td>键盘控制（课堂未讲）</td>
+        <td>"再加一个课堂没讲的能力：用键盘方向键控制轮播，并说明为什么只在该轮播可见时生效"</td>
+        <td>AI 给出 <code>keyboard: { enabled: true, onlyInViewport: true }</code>；<code>onlyInViewport</code> 让轮播滚出屏幕后按键不再误触发，避免与页面滚动冲突</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="wh_sec">
+    <h2>4 · 答辩四连问</h2>
+    <dl class="wh_qa">
+      <dt>这段代码什么意思？</dt>
+      <dd>先建缩略图小轮播 <code>#whSwThumbs</code>（<code>loop</code> 循环、<code>slidesPerView: 4</code> 一次露 4 张、<code>freeMode</code> 自由滑动、<code>watchSlidesProgress</code> 输出滑动进度），再用 <code>thumbs: { swiper: wh_thumbs }</code> 把它交给主轮播 <code>#whSwGallery</code>，主图切换时缩略图自动高亮、点缩略图主图自动跳转；<code>keyboard</code> 让方向键也能切换。</dd>
+      <dt>AI 第一次给的哪里不对、你改了什么？</dt>
+      <dd>第一版只初始化了主轮播，没有缩略图实例，也没有 <code>thumbs</code> 绑定，结果缩略图点了完全没反应、主图切换时缩略图不高亮。我补建了小轮播实例并加上 <code>thumbs.swiper</code>，联动才成立。</dd>
+      <dt>新参数的作用？</dt>
+      <dd><code>thumbs.swiper</code> = 绑定缩略图实例；<code>slidesPerView: 4</code> = 缩略图条一次露出 4 张；<code>freeMode</code> = 缩略图可自由滑动不吸附；<code>watchSlidesProgress</code> = 把滑动进度同步给对方；<code>keyboard.onlyInViewport</code> = 只在轮播可见时响应方向键。</dd>
+      <dt>现场把 delay 改成指定值并解释预期变化</dt>
+      <dd>当前 delay 为 3200 毫秒；改成 1500 自动翻页明显变快，改成 6000 则更慢。若删掉 autoplay，就只能靠缩略图点击、左右按钮或键盘方向键切换。</dd>
+    </dl>
+  </div>
+
+  <div class="wh_back">
+    <a href="index.html">← 返回课堂实践中心</a>
+    <a href="swiper-task2.html">← 任务二 · creative 仿写</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:34
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: 任务三缩略图画廊 —— 按 310-thumbs-gallery-loop.html 的写法，
+   *                 先创建缩略图小轮播，再创建主轮播并用 thumbs 绑定实现联动，
+   *                 同时开启 keyboard 键盘控制（课堂未讲能力）。
+   */
+
+  var wh_thumbsSwiper = null;
+  var wh_gallerySwiper = null;
+
+  /**
+   * 功能: wh_initThumbs
+   * 简介: 创建缩略图小轮播 #whSwThumbs。loop 让 10 张缩略图循环衔接；spaceBetween 控制缩略图间距；
+   *       slidesPerView 4 让缩略图条一次露出 4 张；freeMode 允许自由滑动不强制吸附；
+   *       watchSlidesProgress 输出滑动进度，供主轮播同步高亮。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:34
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initThumbs() {
+    wh_thumbsSwiper = new Swiper("#whSwThumbs", {
+      loop: true,
+      spaceBetween: 10,
+      slidesPerView: 4,
+      freeMode: true,
+      watchSlidesProgress: true
+    });
+  }
+
+  /**
+   * 功能: wh_initGallery
+   * 简介: 创建主轮播 #whSwGallery。loop 循环；autoplay 3.2 秒自动翻页且拖动后继续；
+   *       navigation 绑定 .wh_prev / .wh_next 左右按钮；thumbs.swiper 绑定缩略图实例，
+   *       实现"点缩略图跳主图、主图切换时缩略图高亮"的双向联动；
+   *       keyboard 开启方向键控制，onlyInViewport 保证轮播滚出视口后按键不再响应。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:34
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initGallery() {
+    wh_gallerySwiper = new Swiper("#whSwGallery", {
+      loop: true,
+      spaceBetween: 10,
+      autoplay: {
+        delay: 3200,
+        disableOnInteraction: false
+      },
+      navigation: {
+        nextEl: ".wh_next",
+        prevEl: ".wh_prev"
+      },
+      keyboard: {
+        enabled: true,
+        onlyInViewport: true
+      },
+      thumbs: {
+        swiper: wh_thumbsSwiper
+      }
+    });
+  }
+
+  /**
+   * 功能: wh_initTask3
+   * 简介: 页面加载完成后先建缩略图轮播，再建主轮播并绑定，顺序不能颠倒，
+   *       否则 thumbs.swiper 拿不到有效实例，联动会失效。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:34
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initTask3() {
+    wh_initThumbs();
+    wh_initGallery();
+  }
+
+  document.addEventListener("DOMContentLoaded", wh_initTask3);
+</script>
+</body>
+</html>

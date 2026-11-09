@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-09 14:00
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: Swiper 任务二 · creative 仿写 - 基于 swiper-prompt.html 的 creative 记录内容，
+                  按任务二要求改为"电影选片墙"演示：新增第 7 个按钮并实现上一张缩小左移带角度、
+                  下一张放大右移进场；含 prev/next transform 说明、AI 关键对话记录、
+                  keyboard 键盘控制（课堂未讲能力）与答辩准备。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任务二 · creative 仿写（电影选片墙）</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#0f1518;color:#e6edf2;line-height:1.85}
+  .wh_wrap{max-width:980px;margin:0 auto;padding:34px 20px 70px}
+
+  .wh_head{background:linear-gradient(135deg,#0b3d3a,#0f766e);border-radius:16px;padding:30px 32px;margin-bottom:24px}
+  .wh_head h1{font-size:25px;letter-spacing:1px;margin-bottom:8px}
+  .wh_head h1 b{color:#ffd166}
+  .wh_head p{font-size:14px;color:#c9e6e2}
+  .wh_head .wh_links{margin-top:12px;font-size:13.5px}
+  .wh_head .wh_links a{color:#ffd166;text-decoration:none;margin-right:16px}
+
+  .wh_sec{background:#151d21;border:1px solid #223038;border-radius:14px;padding:26px 28px;margin-bottom:22px}
+  .wh_sec > h2{font-size:18px;margin-bottom:10px;padding-left:10px;border-left:4px solid #2dd4bf}
+  .wh_sec > h2 span{font-size:12.5px;color:#8fa3ad;font-weight:normal;margin-left:8px}
+  .wh_sec h3{font-size:14.5px;color:#5eead4;margin:18px 0 8px}
+  .wh_sec p{font-size:14px;color:#c4d1d8;margin-bottom:8px}
+  .wh_sec p b{color:#fff}
+
+  .wh_code{background:#0a1114;border:1px solid #223038;color:#e6edf2;border-radius:8px;padding:14px 16px;font-family:Consolas,monospace;font-size:12.5px;line-height:1.75;overflow-x:auto;white-space:pre}
+  .wh_cmt{color:#7c8f99}
+  .wh_num{color:#fbbf24}
+
+  .wh_stage{max-width:760px;margin:16px auto 0;padding:22px 0 46px;border-radius:16px;background:radial-gradient(ellipse at center,#122a2a 0%,#0b1114 70%);overflow:hidden}
+  .wh_stage .swiper{width:100%;padding-bottom:36px}
+  .wh_stage .swiper-slide{height:290px;border-radius:12px;overflow:hidden;position:relative}
+  .wh_stage .swiper-slide img{width:100%;height:100%;object-fit:cover;display:block}
+  .wh_cap{position:absolute;left:0;right:0;bottom:0;padding:30px 18px 12px;background:linear-gradient(transparent,rgba(0,0,0,.8));font-size:14px}
+  .wh_stage .swiper-pagination-bullet{background:#2dd4bf;opacity:.35}
+  .wh_stage .swiper-pagination-bullet-active{background:#ffd166;opacity:1;width:20px;border-radius:6px}
+
+  .wh_fx{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0 0}
+  .wh_fx button{border:1.5px solid #2f4b52;background:#141e22;color:#a7c4c9;font-size:13px;padding:8px 16px;border-radius:999px;cursor:pointer;font-family:inherit;transition:.2s}
+  .wh_fx button:hover{border-color:#2dd4bf;color:#fff}
+  .wh_fx button.wh_on{background:linear-gradient(135deg,#0f766e,#2dd4bf);border-color:transparent;color:#03201d;font-weight:bold}
+
+  .wh_table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+  .wh_table th,.wh_table td{border:1px solid #223038;padding:9px 12px;text-align:left}
+  .wh_table th{background:#1a262b;color:#5eead4}
+
+  .wh_qa dt{font-size:14px;font-weight:bold;color:#ffd166;margin-top:12px}
+  .wh_qa dd{font-size:13.5px;color:#c4d1d8;border-left:3px solid #1f4d4a;padding-left:12px;margin-top:6px}
+
+  .wh_btn{display:inline-block;text-decoration:none;font-size:13.5px;font-weight:bold;color:#03201d;background:#2dd4bf;border-radius:999px;padding:10px 22px;margin-top:6px}
+  .wh_back{text-align:center;margin-top:26px;font-size:14px}
+  .wh_back a{color:#a7c4c9;text-decoration:none;margin:0 10px}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>任务二 · <b>creative 仿写：课堂没讲，AI 教你</b></h1>
+    <p>课堂上只讲了 6 种 effect，Swiper 其实还有第 7 种 <code>creative</code>（自定义变换）。本页在演示四新增第 7 个按钮，并把它调成"电影选片墙"。</p>
+    <div class="wh_links">
+      <a href="swiper-task1.html">任务一 · 提示词工程师</a>
+      <a href="swiper-task3.html">任务三 · 综合创作</a>
+      <a href="index.html">返回首页</a>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>1 · 源文件与思路 <span>参考 257-effect-creative.html</span></h2>
+    <p>官方示例 <code>swiper/demo/257-effect-creative.html</code> 只给了最简写法：<code>effect: "creative"</code> 配合 <code>creativeEffect</code>。要让画面"像电影选片墙"，需要分别定义 <b>prev</b>（离场帧）和 <b>next</b>（进场帧）的位移、缩放与倾斜。</p>
+    <div class="wh_code">creativeEffect: {
+  prev: {
+    translate: [<span class="wh_num">"-80%"</span>, <span class="wh_num">0</span>, <span class="wh_num">-300</span>],   <span class="wh_cmt">// 左移 80%、Z 轴后退 300px</span>
+    scale: <span class="wh_num">0.85</span>,                <span class="wh_cmt">// 缩小到 85%</span>
+    rotate: [<span class="wh_num">0</span>, <span class="wh_num">0</span>, <span class="wh_num">-15</span>],           <span class="wh_cmt">// 逆时针倾斜 15 度</span>
+    shadow: true,
+  },
+  next: {
+    translate: [<span class="wh_num">"120%"</span>, <span class="wh_num">0</span>, <span class="wh_num">0</span>],     <span class="wh_cmt">// 从右侧 120% 处滑入</span>
+    scale: <span class="wh_num">1.15</span>,                <span class="wh_cmt">// 放大到 115%</span>
+    shadow: true,
+  },
+}</div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>2 · 实时演示 <span>默认即为 creative 电影选片墙</span></h2>
+    <div class="wh_fx">
+      <button data-wh-fx="slide">slide 平推</button>
+      <button data-wh-fx="fade">fade 淡入淡出</button>
+      <button data-wh-fx="cube">cube 3D 立方体</button>
+      <button data-wh-fx="coverflow">coverflow 画廊</button>
+      <button data-wh-fx="flip">flip 翻页</button>
+      <button data-wh-fx="cards">cards 卡片</button>
+      <button class="wh_on" data-wh-fx="creative">creative 电影选片墙（第 7 种）</button>
+    </div>
+
+    <div class="wh_stage">
+      <div class="swiper" id="whSwCreative">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wh_cap">天宫空间站 · 中国人的太空家园</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wh_cap">复兴号动车组 · 世界商业运营最高时速</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wh_cap">C919 大飞机 · 国产干线客机</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wh_cap">奋斗者号 · 万米深潜</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wh_cap">中国天眼 FAST · 观天巨目</div></div>
+          <div class="swiper-slide"><img src="swiper-imgs/aida_1.jpg" alt="爱达·魔都号"><div class="wh_cap">爱达·魔都号 · 首艘国产大型邮轮</div></div>
+        </div>
+        <div class="swiper-pagination" id="whPagCreative"></div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:13px;color:#8fa3ad;margin-top:10px">拖动或点击下方圆点切换；切换时上一张缩小左移倾斜，下一张放大右移进场。点一下画面后按 <code>←</code> <code>→</code> 也能切换（课堂未讲能力 keyboard）。</p>
+  </div>
+
+  <div class="wh_sec">
+    <h2>3 · 用自己的话说清 prev / next</h2>
+    <table class="wh_table">
+      <tr><th style="width:120px">配置项</th><th>控制什么</th><th>本页取值与效果</th></tr>
+      <tr><td><code>prev.translate</code></td><td>离场幻灯片的位置（x / y / z）</td><td>[-80%, 0, -300]：向左退、并向屏幕深处退</td></tr>
+      <tr><td><code>prev.scale</code></td><td>离场幻灯片的缩放</td><td>0.85：缩小到 85%，产生景深</td></tr>
+      <tr><td><code>prev.rotate</code></td><td>离场幻灯片的 3D 倾斜</td><td>[0, 0, -15]：绕 Z 轴逆时针 15 度</td></tr>
+      <tr><td><code>next.translate</code></td><td>进场幻灯片从哪来、多远</td><td>[120%, 0, 0]：从右侧画面外滑入</td></tr>
+      <tr><td><code>next.scale</code></td><td>进场幻灯片的缩放</td><td>1.15：放大到 115%，形成"推近"的冲击</td></tr>
+      <tr><td><code>shadow</code></td><td>是否为幻灯片叠加投影</td><td>true：增强层次，像选片台上的卡片</td></tr>
+    </table>
+  </div>
+
+  <div class="wh_sec">
+    <h2>4 · 与 AI 的关键对话记录</h2>
+    <table class="wh_table">
+      <tr><th style="width:52px">轮次</th><th>我的提示词</th><th>AI 的回应与我的处理</th></tr>
+      <tr>
+        <td>第 1 轮</td>
+        <td>"参考 257-effect-creative.html，给第 7 个按钮加 creative 电影选片墙效果"</td>
+        <td>AI 只写了 <code>effect: "creative"</code>，没有 <code>creativeEffect</code>，切换看起来接近普通淡入；我判定不合格</td>
+      </tr>
+      <tr>
+        <td>第 2 轮</td>
+        <td>"上一张要缩小左移并带角度，下一张要放大右移进场；把 prev / next 的 translate、scale、rotate 具体数值写出来"</td>
+        <td>AI 补出 <code>prev.translate: ["-80%",0,-300]</code>、<code>scale: 0.85</code>、<code>rotate: [0,0,-15]</code>，以及 <code>next.translate: ["120%",0,0]</code>、<code>scale: 1.15</code>，效果达标</td>
+      </tr>
+      <tr>
+        <td>第 3 轮</td>
+        <td>"再加一个课堂没讲的能力：键盘方向键也能切换，并且只在轮播可见时响应"</td>
+        <td>AI 给出 <code>keyboard: { enabled: true, onlyInViewport: true }</code>；<code>onlyInViewport</code> 避免页面滚动时方向键误触发</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="wh_sec">
+    <h2>5 · 答辩准备</h2>
+    <dl class="wh_qa">
+      <dt>transform 里的百分号是相对谁的？</dt>
+      <dd>相对幻灯片自身（等价于容器宽度）的百分比，不是屏幕也不是父元素；<code>100%</code> 就是"整整一张幻灯片的宽度"。translate 的第三个值（z 轴）是像素单位。</dd>
+      <dt>改一个数值让卡片转 20 度试试？</dt>
+      <dd>把 <code>prev.rotate: [0, 0, -15]</code> 改成 <code>[0, 0, -20]</code> 为逆时针 20 度；写成 <code>[0, 0, 20]</code> 则是顺时针 20 度。负号决定方向，绝对值决定角度。</dd>
+      <dt>为什么动态换 effect 要 destroy 再 new？</dt>
+      <dd>Swiper 在初始化时按 effect 写入 DOM 结构与 CSS transform，运行中只改 <code>params.effect</code> 不会重建这些结构，所以必须销毁旧实例后按新配置重建。</dd>
+      <dt>课堂未讲的 keyboard 能力怎么加？</dt>
+      <dd>配置里加 <code>keyboard: { enabled: true, onlyInViewport: true }</code>：点一下轮播获得焦点后按 ← / → 切换；<code>onlyInViewport</code> 保证轮播滚出视口后按键不再响应，避免与页面滚动冲突。</dd>
+    </dl>
+  </div>
+
+  <div class="wh_sec">
+    <h2>6 · 原始记录</h2>
+    <p>更完整的提示词与 AI 往返记录仍保留在过程档案页中，可对照查看。</p>
+    <a class="wh_btn" href="swiper-prompt.html">打开 swiper-prompt.html 过程档案 →</a>
+  </div>
+
+  <div class="wh_back">
+    <a href="index.html">← 返回课堂实践中心</a>
+    <a href="swiper-task3.html">任务三 · 综合创作 →</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:00
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: wh_initCreativeSwiper - 用 creative 效果初始化电影选片墙轮播；
+   *                  wh_switchEffect - 按钮点击时高亮当前按钮、销毁旧实例并换 effect 重建。
+   */
+
+  /**
+   * 功能: wh_buildEffectConfig
+   * 简介: 生成轮播配置。传入效果名时返回对应的 Swiper 配置对象；当效果为 creative 时
+   *       额外注入 creativeEffect（prev 缩小左移倾斜、next 放大右移），形成电影选片墙；
+   *       所有效果统一开启 keyboard 键盘控制，onlyInViewport 保证轮播滚出视口后按键不响应。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:52
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_buildEffectConfig(wh_effect) {
+    var wh_config = {
+      loop: true,
+      speed: 800,
+      effect: wh_effect,
+      grabCursor: true,
+      autoplay: {
+        delay: 3200,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: "#whPagCreative",
+        clickable: true
+      },
+      keyboard: {
+        enabled: true,
+        onlyInViewport: true
+      }
+    };
+
+    if (wh_effect === "creative") {
+      wh_config.creativeEffect = {
+        prev: {
+          translate: ["-80%", 0, -300],
+          scale: 0.85,
+          rotate: [0, 0, -15],
+          shadow: true
+        },
+        next: {
+          translate: ["120%", 0, 0],
+          scale: 1.15,
+          shadow: true
+        }
+      };
+    }
+
+    return wh_config;
+  }
+
+  /**
+   * 功能: wh_initCreativeSwiper
+   * 简介: 首次加载时以 creative 效果创建 #whSwCreative 轮播实例，默认即呈现电影选片墙。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:00
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  var wh_creativeSwiper = null;
+  function wh_initCreativeSwiper() {
+    wh_creativeSwiper = new Swiper("#whSwCreative", wh_buildEffectConfig("creative"));
+  }
+
+  /**
+   * 功能: wh_switchEffect
+   * 简介: 点击效果按钮时切换轮播效果。先清除所有按钮的 wh_on 高亮并给当前按钮加上，
+   *       再销毁旧实例，最后按新效果重建（动态换 effect 必须 destroy + new）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-09 14:00
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_switchEffect(wh_buttons, wh_btn) {
+    wh_buttons.forEach(function (wh_b) {
+      wh_b.classList.remove("wh_on");
+    });
+    wh_btn.classList.add("wh_on");
+
+    if (wh_creativeSwiper) {
+      wh_creativeSwiper.destroy(true, true);
+      wh_creativeSwiper = null;
+    }
+
+    wh_creativeSwiper = new Swiper("#whSwCreative", wh_buildEffectConfig(wh_btn.getAttribute("data-wh-fx")));
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    wh_initCreativeSwiper();
+
+    var wh_buttons = document.querySelectorAll(".wh_fx button");
+    wh_buttons.forEach(function (wh_btn) {
+      wh_btn.addEventListener("click", function () {
+        wh_switchEffect(wh_buttons, wh_btn);
+      });
+    });
+  });
+</script>
+</body>
+</html>
