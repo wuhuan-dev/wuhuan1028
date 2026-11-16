@@ -17,76 +17,76 @@
 <title>任务一 · 事件侦探：一次拖动到底发生了什么</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#0f1116;color:#e6e8ee;line-height:1.8;font-size:14px}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#fdf8f2;color:#3a2f26;line-height:1.8;font-size:14px}
   .wh_wrap{max-width:1080px;margin:0 auto;padding:22px 16px 50px}
 
-  .wh_head{background:linear-gradient(135deg,#1b2130,#27334d);border-radius:14px;padding:20px 22px;margin-bottom:16px;border:1px solid #2f3b52}
-  .wh_head h1{font-size:19px;letter-spacing:1px;margin-bottom:6px}
-  .wh_head h1 b{color:#6ee7ff}
-  .wh_head p{font-size:12.5px;color:#9aa7bd}
+  .wh_head{background:linear-gradient(135deg,#ffffff,#fdf1e3);border-radius:14px;padding:20px 22px;margin-bottom:16px;border:1px solid #f3e5d2}
+  .wh_head h1{font-size:19px;letter-spacing:1px;margin-bottom:6px;color:#2c211a}
+  .wh_head h1 b{color:#d9781f}
+  .wh_head p{font-size:12.5px;color:#8b7b6b}
   .wh_head .wh_links{margin-top:10px;font-size:12.5px}
-  .wh_head .wh_links a{color:#6ee7ff;text-decoration:none;margin-right:14px}
+  .wh_head .wh_links a{color:#d9781f;text-decoration:none;margin-right:14px}
 
-  .wh_sec{background:#161b26;border:1px solid #263045;border-radius:12px;padding:18px 20px;margin-bottom:16px}
-  .wh_sec > h2{font-size:15px;color:#e6e8ee;margin-bottom:10px;padding-left:9px;border-left:3px solid #6ee7ff}
-  .wh_sec > h2 span{font-size:12px;color:#7d8aa0;font-weight:normal;margin-left:6px}
-  .wh_sec p{font-size:13px;color:#b7c1d2;margin-bottom:8px}
-  .wh_sec p b{color:#fff}
+  .wh_sec{background:#fff;border:1px solid #efe4d5;border-radius:14px;padding:18px 20px;margin-bottom:16px}
+  .wh_sec > h2{font-size:15px;color:#2c211a;margin-bottom:10px;padding-left:9px;border-left:3px solid #d9781f}
+  .wh_sec > h2 span{font-size:12px;color:#a39280;font-weight:normal;margin-left:6px}
+  .wh_sec p{font-size:13px;color:#5c4f43;margin-bottom:8px}
+  .wh_sec p b{color:#2c211a}
 
   /* 操作清单 */
   .wh_ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-  .wh_op{border:1px solid #2c3850;border-radius:9px;padding:10px 12px;background:#1b2231;font-size:12.5px;color:#b7c1d2}
-  .wh_op b{color:#6ee7ff;display:block;font-size:13px;margin-bottom:2px}
+  .wh_op{border:1px solid #f0e6d8;border-radius:9px;padding:10px 12px;background:#fffdf9;font-size:12.5px;color:#5c4f43}
+  .wh_op b{color:#d9781f;display:block;font-size:13px;margin-bottom:2px}
 
   /* 实时状态 */
   .wh_state{display:flex;flex-wrap:wrap;gap:10px}
-  .wh_state div{flex:1 1 120px;background:#1b2231;border:1px solid #2c3850;border-radius:9px;padding:9px 12px;font-size:12px;color:#8e9bb2}
-  .wh_state div b{display:block;color:#6ee7ff;font-size:16px;font-family:Consolas,monospace}
+  .wh_state div{flex:1 1 120px;background:#fffdf9;border:1px solid #f0e6d8;border-radius:9px;padding:9px 12px;font-size:12px;color:#a39280}
+  .wh_state div b{display:block;color:#d9781f;font-size:16px;font-family:Consolas,monospace}
 
   /* 探针区 */
-  .wh_probe{position:relative;height:300px;border:2px dashed #3a4a68;border-radius:12px;
-    background:radial-gradient(circle at 50% 40%,#1d2b3d,#141a25);overflow:hidden;
+  .wh_probe{position:relative;height:300px;border:2px dashed #e2cdb0;border-radius:12px;
+    background:linear-gradient(#fffdfa,#fdf4e8);overflow:hidden;
     display:flex;align-items:center;justify-content:center;touch-action:none;
     -webkit-user-select:none;user-select:none;cursor:crosshair}
-  .wh_probe.wh_active{border-color:#6ee7ff;background:radial-gradient(circle at 50% 40%,#1f3a4d,#141a25)}
-  .wh_probe .wh_hint{text-align:center;color:#5d6d87;font-size:13px;pointer-events:none}
-  .wh_probe .wh_hint b{display:block;font-size:16px;color:#7d8ea8;margin-bottom:4px}
-  /* 探针区内部实时轨迹层：铺满探针，不接收事件 */
-  .wh_probe .wh_trace{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2}
+  .wh_probe.wh_active{border-color:#d9781f;background:linear-gradient(#ffffff,#fdf0dd)}
+  .wh_probe .wh_hint{text-align:center;color:#b9a894;font-size:13px;pointer-events:none}
+  .wh_probe .wh_hint b{display:block;font-size:16px;color:#8b7b6b;margin-bottom:4px}
+  /* 探针区只负责采集触摸，不显示任何轨迹：轨迹统一在第 6 节"轨迹草图"里呈现 */
+  .wh_probe .wh_trace{display:none}
   .wh_dot{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;
-    background:rgba(110,231,255,.85);box-shadow:0 0 14px rgba(110,231,255,.9);pointer-events:none}
+    background:rgba(217,120,31,.85);box-shadow:0 0 14px rgba(217,120,31,.75);pointer-events:none}
 
   /* 表格 */
-  .wh_scroll{max-height:300px;overflow:auto;border:1px solid #263045;border-radius:9px}
+  .wh_scroll{max-height:300px;overflow:auto;border:1px solid #efe4d5;border-radius:9px}
   table.wh_tb{width:100%;border-collapse:collapse;font-size:12px}
-  table.wh_tb th,table.wh_tb td{border-bottom:1px solid #222c3e;padding:6px 9px;text-align:left;white-space:nowrap}
-  table.wh_tb th{background:#1b2231;color:#8e9bb2;position:sticky;top:0;font-weight:normal}
-  table.wh_tb td{color:#c3ccdb;font-family:Consolas,monospace}
-  .wh_ev_touchstart{color:#7ee787!important}
-  .wh_ev_touchmove{color:#79c0ff!important}
-  .wh_ev_touchend{color:#ffd580!important}
-  .wh_ev_touchcancel{color:#ff9d94!important}
-  .wh_ev_click{color:#d2a8ff!important}
+  table.wh_tb th,table.wh_tb td{border-bottom:1px solid #f4ece1;padding:6px 9px;text-align:left;white-space:nowrap}
+  table.wh_tb th{background:#faf4ea;color:#8b7b6b;position:sticky;top:0;font-weight:normal}
+  table.wh_tb td{color:#4a3f34;font-family:Consolas,monospace}
+  .wh_ev_touchstart{color:#15803d!important}
+  .wh_ev_touchmove{color:#1d4ed8!important}
+  .wh_ev_touchend{color:#b45309!important}
+  .wh_ev_touchcancel{color:#b91c1c!important}
+  .wh_ev_click{color:#7c3aed!important}
 
-  .wh_empty{color:#5d6d87;font-size:12px;padding:14px;text-align:center}
+  .wh_empty{color:#b9a894;font-size:12px;padding:14px;text-align:center}
 
   /* 轨迹画布 */
-  .wh_canvas{width:100%;height:220px;background:#11161f;border:1px solid #263045;border-radius:9px;display:block}
+  .wh_canvas{width:100%;height:220px;background:#fffdf9;border:1px solid #efe4d5;border-radius:9px;display:block}
 
   /* 问答 */
-  .wh_qa dt{font-size:13.5px;color:#6ee7ff;font-weight:bold;margin-top:12px}
-  .wh_qa dd{font-size:13px;color:#b7c1d2;border-left:3px solid #2c3850;padding-left:12px;margin-top:5px}
-  .wh_qa dd b{color:#fff}
-  .wh_qa dd code{background:#1e2737;color:#79c0ff;border-radius:4px;padding:1px 6px;font-family:Consolas,monospace;font-size:12px}
+  .wh_qa dt{font-size:13.5px;color:#b45309;font-weight:bold;margin-top:12px}
+  .wh_qa dd{font-size:13px;color:#5c4f43;border-left:3px solid #f0e6d8;padding-left:12px;margin-top:5px}
+  .wh_qa dd b{color:#2c211a}
+  .wh_qa dd code{background:#fdf3e6;color:#b45309;border-radius:4px;padding:1px 6px;font-family:Consolas,monospace;font-size:12px}
 
-  .wh_btn{display:inline-block;border:none;border-radius:8px;padding:8px 16px;font-size:12.5px;
-    background:#243149;color:#b7c1d2;cursor:pointer;margin-right:8px}
-  .wh_btn:hover{background:#2f4060;color:#fff}
-  .wh_note{font-size:12px;color:#6b7a91;margin-top:8px}
+  .wh_btn{display:inline-block;border:1px solid #f0d9bc;border-radius:8px;padding:8px 16px;font-size:12.5px;
+    background:#fdf3e6;color:#8a5a20;cursor:pointer;margin-right:8px}
+  .wh_btn:hover{background:#f8e6cd;color:#b45309}
+  .wh_note{font-size:12px;color:#a39280;margin-top:8px}
 
   .wh_back{text-align:center;margin-top:22px;font-size:13px}
-  .wh_back a{color:#8e9bb2;text-decoration:none;margin:0 10px}
-  .wh_back a:hover{color:#6ee7ff}
+  .wh_back a{color:#8b7b6b;text-decoration:none;margin:0 10px}
+  .wh_back a:hover{color:#d9781f}
 </style>
 </head>
 <body>
@@ -112,7 +112,7 @@
       <div class="wh_op"><b>④ 双指触摸</b>两指同时按下再抬起</div>
       <div class="wh_op"><b>⑤ 长按后抬起</b>按住约 600ms 不动再抬</div>
     </div>
-    <p class="wh_note">触屏设备走 touch 事件；桌面浏览器会自动改用 pointer 事件（用鼠标拖动同样能记录手势、绘制轨迹），想看真实的事件名请开启 DevTools 设备模式（Ctrl+Shift+M）或用手机访问。</p>
+    <p class="wh_note">触屏设备走 touch 事件；桌面浏览器会自动改用 pointer 事件（用鼠标拖动同样能记录手势、绘制轨迹，日志里仍按 touch 系列命名以便对照），想看真实的事件名请开启 DevTools 设备模式（Ctrl+Shift+M）或用手机访问。</p>
   </div>
 
   <div class="wh_sec">
@@ -130,7 +130,7 @@
     <h2>3 · 探针区 <span>在这里做 5 种操作</span></h2>
     <div class="wh_probe" id="whProbe">
       <canvas class="wh_trace" id="whTrace"></canvas>
-      <div class="wh_hint"><b>把手指放上来</b>每次操作结束后下方会自动生成一条手势记录</div>
+      <div class="wh_hint"><b>把手指放上来</b>探针区不显示轨迹，操作后请看第 6 节 · 轨迹草图</div>
     </div>
     <div style="margin-top:12px">
       <button class="wh_btn" id="whClear">清空记录</button>
@@ -167,9 +167,9 @@
   </div>
 
   <div class="wh_sec">
-    <h2>6 · 轨迹草图（加分） <span>canvas 绘制手指实际路径</span></h2>
+    <h2>6 · 轨迹草图（加分） <span>轨迹只在这里显示</span></h2>
     <canvas class="wh_canvas" id="whCanvas" width="1000" height="440"></canvas>
-    <p class="wh_note">每次手势用不同颜色绘制 touchmove 采样点连线，○ 为起点，× 为终点。</p>
+    <p class="wh_note">探针区只采集触摸、不显示轨迹；每次手势结束后在这里用不同颜色绘制 touchmove 采样点连线，○ 为起点，× 为终点。</p>
   </div>
 
   <div class="wh_sec">
@@ -233,7 +233,7 @@
   /** 页面打开时刻，用于计算相对时间 */
   var wh_startAt = Date.now();
   /** 轨迹配色轮换 */
-  var wh_colors = ["#6ee7ff", "#7ee787", "#ffd580", "#ff9d94", "#d2a8ff", "#79c0ff"];
+  var wh_colors = ["#0ea5e9", "#16a34a", "#d97706", "#dc2626", "#7c3aed", "#2563eb"];
 
   /**
    * 功能: wh_syncTraceSize
@@ -272,26 +272,6 @@
       probeW: wh_rect.width,
       probeH: wh_rect.height
     };
-  }
-
-  /**
-   * 功能: wh_drawLive
-   * 简介: 在探针区内部实时画线：取当前路径的最后两个采样点连一条线段，
-   *       每来一次移动就画一段，用户按住拖动时就能立刻看到自己的轨迹。
-   * 作者: 吴欢
-   * 建立时间: 2026-11-16 14:35
-   * 使用模型: DeepSeek-V4.1-Flash
-   */
-  function wh_drawLive() {
-    if (!wh_current || wh_current.path.length < 2) return;
-    var wh_n = wh_current.path.length;
-    var wh_a = wh_current.path[wh_n - 2];
-    var wh_b = wh_current.path[wh_n - 1];
-    wh_traceCtx.strokeStyle = wh_current.color;
-    wh_traceCtx.beginPath();
-    wh_traceCtx.moveTo(wh_a.x, wh_a.y);
-    wh_traceCtx.lineTo(wh_b.x, wh_b.y);
-    wh_traceCtx.stroke();
   }
 
   /**
@@ -554,8 +534,7 @@
         wh_current.maxTouches = wh_e.touches.length;
       }
       wh_current.path.push({ x: wh_p.x, y: wh_p.y });
-      // 实时把这一段画到探针区里，操作时就能看到轨迹
-      wh_drawLive();
+      // 探针区不再显示轨迹，轨迹只在第 6 节"轨迹草图"中绘制
     }
     wh_logEvent("touchmove", wh_e);
 

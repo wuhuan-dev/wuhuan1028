@@ -18,17 +18,17 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
-    background:radial-gradient(circle at 50% 0%,#2a1d3d,#12101a 60%);color:#f2ecff;
+    background:radial-gradient(circle at 50% 0%,#fdf3e6,#fdf8f2 60%);color:#3a2f26;
     line-height:1.8;min-height:100vh}
   .wh_wrap{max-width:520px;margin:0 auto;padding:20px 16px 50px}
 
   .wh_head{text-align:center;padding:6px 0 16px}
-  .wh_head h1{font-size:19px;letter-spacing:1px}
-  .wh_head h1 b{color:#c084fc}
-  .wh_head .wh_author{font-size:12.5px;color:#9b8fb5;margin-top:6px}
-  .wh_head .wh_author b{color:#e9d5ff}
+  .wh_head h1{font-size:19px;letter-spacing:1px;color:#2c211a}
+  .wh_head h1 b{color:#d9781f}
+  .wh_head .wh_author{font-size:12.5px;color:#8b7b6b;margin-top:6px}
+  .wh_head .wh_author b{color:#b45309}
   .wh_head .wh_links{margin-top:8px;font-size:12.5px}
-  .wh_head .wh_links a{color:#c084fc;text-decoration:none;margin:0 8px}
+  .wh_head .wh_links a{color:#d9781f;text-decoration:none;margin:0 8px}
 
   /* 摇一摇提示 */
   .wh_guide{text-align:center;padding:18px 12px 6px}
@@ -42,12 +42,12 @@
     85%{transform:rotate(-7deg)}
     90%{transform:rotate(7deg)}
   }
-  .wh_guide h2{font-size:16px;color:#e9d5ff;margin-top:6px}
-  .wh_guide p{font-size:12.5px;color:#9b8fb5;margin-top:4px}
+  .wh_guide h2{font-size:16px;color:#2c211a;margin-top:6px}
+  .wh_guide p{font-size:12.5px;color:#8b7b6b;margin-top:4px}
 
   /* 结果卡片 */
   .wh_result{margin-top:16px;border-radius:18px;overflow:hidden;
-    background:rgba(255,255,255,.06);border:1px solid rgba(192,132,252,.28);
+    background:#fff;border:1px solid #efe4d5;box-shadow:0 6px 18px rgba(92,60,20,.08);
     min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;
     padding:22px 20px;text-align:center;transition:transform .3s}
   .wh_result.wh_pop{animation:wh_pop .55s cubic-bezier(.2,1.5,.4,1)}
@@ -56,44 +56,51 @@
     60%{transform:scale(1.06);opacity:1}
     100%{transform:scale(1);opacity:1}
   }
-  .wh_result .wh_ph{font-size:13px;color:#9b8fb5}
+  .wh_result .wh_ph{font-size:13px;color:#a39280}
   .wh_result img{width:100%;max-width:300px;height:170px;object-fit:cover;border-radius:12px;display:none;margin-bottom:12px}
-  .wh_result h3{font-size:21px;color:#fff;letter-spacing:1px;margin-bottom:6px;display:none}
-  .wh_result p{font-size:13px;color:#cbb8e8;display:none}
+  .wh_result h3{font-size:21px;color:#2c211a;letter-spacing:1px;margin-bottom:6px;display:none}
+  .wh_result p{font-size:13px;color:#7a6a58;display:none}
   .wh_result.wh_has img,.wh_result.wh_has h3,.wh_result.wh_has p{display:block}
   .wh_result.wh_has .wh_ph{display:none}
 
   /* 状态栏 */
   .wh_status{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-  .wh_status div{flex:1 1 110px;background:rgba(255,255,255,.05);border:1px solid rgba(192,132,252,.18);
-    border-radius:10px;padding:8px 11px;font-size:11.5px;color:#9b8fb5}
-  .wh_status div b{display:block;font-size:15px;color:#c084fc;font-family:Consolas,monospace}
+  .wh_status div{flex:1 1 110px;background:#fffdf9;border:1px solid #f0e6d8;
+    border-radius:10px;padding:8px 11px;font-size:11.5px;color:#a39280}
+  .wh_status div b{display:block;font-size:15px;color:#d9781f;font-family:Consolas,monospace}
 
   /* 按钮 */
   .wh_btns{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
   .wh_btn{border:none;cursor:pointer;border-radius:999px;padding:11px 22px;font-size:13.5px;
     font-weight:bold;letter-spacing:.5px;transition:transform .15s,opacity .2s}
   .wh_btn:active{transform:scale(.96)}
-  .wh_btn_main{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff}
-  .wh_btn_fall{background:rgba(255,255,255,.1);color:#e9d5ff;border:1px solid rgba(192,132,252,.4)}
+  .wh_btn_main{background:linear-gradient(135deg,#e8912f,#c2600f);color:#fff}
+  .wh_btn_fall{background:#fff;color:#b45309;border:1px solid #f0d9bc}
   .wh_btn:disabled{opacity:.45;cursor:not-allowed}
 
   /* 不支持提示 */
-  .wh_alert{margin-top:14px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.4);
-    color:#fca5a5;border-radius:10px;padding:10px 14px;font-size:12.5px;display:none}
+  .wh_alert{margin-top:14px;background:#fef2f2;border:1px solid #fecaca;
+    color:#b91c1c;border-radius:10px;padding:10px 14px;font-size:12.5px;display:none}
   .wh_alert.wh_show{display:block}
 
-  .wh_sec{background:rgba(255,255,255,.04);border:1px solid rgba(192,132,252,.18);
+  .wh_sec{background:#fff;border:1px solid #efe4d5;
     border-radius:13px;padding:16px 18px;margin-top:18px}
-  .wh_sec h3{font-size:14px;color:#c084fc;margin-bottom:8px}
-  .wh_sec p{font-size:13px;color:#cbb8e8;margin-bottom:7px}
+  .wh_sec h3{font-size:14px;color:#b45309;margin-bottom:8px}
+  .wh_sec p{font-size:13px;color:#5c4f43;margin-bottom:7px}
   .wh_sec p:last-child{margin-bottom:0}
-  .wh_sec code{background:rgba(192,132,252,.14);color:#e9d5ff;border-radius:4px;padding:1px 6px;
+  .wh_sec code{background:#fdf3e6;color:#b45309;border-radius:4px;padding:1px 6px;
     font-family:Consolas,monospace;font-size:12px}
-  .wh_sec b{color:#f2ecff}
+  .wh_sec b{color:#2c211a}
 
   .wh_back{text-align:center;margin-top:20px;font-size:13px}
-  .wh_back a{color:#9b8fb5;text-decoration:none;margin:0 10px}
+  .wh_back a{color:#8b7b6b;text-decoration:none;margin:0 10px}
+
+  /* 真机演示视频区 */
+  .wh_video{margin-top:10px;border:1px solid #efe4d5;border-radius:12px;overflow:hidden;background:#fffdf9}
+  .wh_video video{width:100%;max-height:460px;display:block;background:#241a12}
+  .wh_video video[hidden]{display:none}
+  .wh_video_tip{font-size:12.5px;color:#8b7b6b;padding:16px;line-height:2}
+  .wh_video_tip code{background:#fdf3e6;color:#b45309;border-radius:4px;padding:1px 6px;font-family:Consolas,monospace;font-size:12px}
 </style>
 </head>
 <body>
@@ -160,6 +167,19 @@
     <p><code>acceleration</code>：<b>已剔除重力</b>，只反映设备自身的线性加速度。静止时应接近
       <code>{0,0,0}</code>，但由于很多设备没有陀螺仪做补偿，这个值可能直接是 <code>null</code> 或不准。</p>
     <p>一句话：<b>含重力的值永远有约 9.8 的底数，适合判断"摇动幅度"；不含重力的值适合做位移/速度积分，但可用性差。</b></p>
+  </div>
+
+  <div class="wh_sec">
+    <h3>真机演示视频</h3>
+    <p>下面是手机上的真实操作录屏（摇一摇触发抽菜谱，以及不支持时的降级按钮）。</p>
+    <div class="wh_video">
+      <video id="whVideo" controls playsinline preload="metadata" src="video/sensor-demo.mp4" hidden></video>
+      <div class="wh_video_tip" id="whVideoTip">
+        视频还没有放入项目。请把手机录制的演示视频命名为
+        <code>sensor-demo.mp4</code>，放到项目的 <code>video/</code> 文件夹下（完整路径 <code>video/sensor-demo.mp4</code>），
+        刷新本页即可在上方播放。
+      </div>
+    </div>
   </div>
 
   <div class="wh_back">
@@ -393,7 +413,33 @@
     document.getElementById("whPickBtn").addEventListener("click", wh_triggerShake);
   }
 
+  /**
+   * 功能: wh_initVideo
+   * 简介: 真机演示视频区初始化。video 元素初始隐藏、占位提示显示；
+   *       检测到视频可播放（loadeddata）时显示播放器并隐藏提示；
+   *       文件不存在或格式不支持（error）时保持提示，避免破图与 404 干扰。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:52
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initVideo() {
+    var wh_video = document.getElementById("whVideo");
+    var wh_tip = document.getElementById("whVideoTip");
+    if (!wh_video || !wh_tip) return;
+
+    wh_video.addEventListener("loadeddata", function () {
+      wh_video.hidden = false;
+      wh_tip.style.display = "none";
+    });
+
+    wh_video.addEventListener("error", function () {
+      wh_video.hidden = true;
+      wh_tip.style.display = "block";
+    });
+  }
+
   wh_bind();
+  wh_initVideo();
 </script>
 </body>
 </html>
