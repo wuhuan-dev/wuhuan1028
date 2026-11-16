@@ -36,6 +36,8 @@ var wh_mime = {
   ".png": "image/png",
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
   ".md": "text/plain; charset=utf-8"
 };
 
@@ -122,14 +124,43 @@ function wh_serveStatic(wh_req, wh_res, wh_urlPath) {
     return wh_res.end("403 Forbidden");
   }
 
-  wh_fs.readFile(wh_filePath, function (wh_err, wh_data) {
-    if (wh_err) {
+  wh_fs.stat(wh_filePath, function (wh_statErr, wh_stat) {
+    if (wh_statErr || !wh_stat.isFile()) {
       wh_res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return wh_res.end("404 Not Found: " + wh_urlPath);
     }
+
     var wh_type = wh_mime[wh_path.extname(wh_filePath).toLowerCase()] || "application/octet-stream";
-    wh_res.writeHead(200, { "Content-Type": wh_type });
-    wh_res.end(wh_data);
+    var wh_range = wh_req.headers.range;
+
+    // 支持 Range 分段请求：视频拖动进度条、iOS Safari 内联播放都依赖 206 响应
+    if (wh_range) {
+      var wh_match = /bytes=(\d*)-(\d*)/.exec(wh_range);
+      if (wh_match) {
+        var wh_start = wh_match[1] ? parseInt(wh_match[1], 10) : 0;
+        var wh_end = wh_match[2] ? parseInt(wh_match[2], 10) : wh_stat.size - 1;
+        if (wh_start >= wh_stat.size) {
+          wh_res.writeHead(416, { "Content-Range": "bytes */" + wh_stat.size });
+          return wh_res.end();
+        }
+        if (wh_end >= wh_stat.size) wh_end = wh_stat.size - 1;
+        wh_res.writeHead(206, {
+          "Content-Type": wh_type,
+          "Content-Range": "bytes " + wh_start + "-" + wh_end + "/" + wh_stat.size,
+          "Accept-Ranges": "bytes",
+          "Content-Length": wh_end - wh_start + 1
+        });
+        return wh_fs.createReadStream(wh_filePath, { start: wh_start, end: wh_end }).pipe(wh_res);
+      }
+    }
+
+    // 普通请求：用流式输出，避免一次性把大视频读进内存
+    wh_res.writeHead(200, {
+      "Content-Type": wh_type,
+      "Content-Length": wh_stat.size,
+      "Accept-Ranges": "bytes"
+    });
+    wh_fs.createReadStream(wh_filePath).pipe(wh_res);
   });
 }
 

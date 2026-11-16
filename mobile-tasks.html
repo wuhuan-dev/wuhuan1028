@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-16 15:52
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: 移动端四关任务总入口 - 打开本页即可选择任务一（事件侦探）、
+                  任务二（手势卡片）、任务三（图片查看器）、任务四（摇一摇）四个页面，
+                  每个入口标明能力维度、星级与一句话简介；页面风格与任务二保持一致
+                  （米白底、白色卡片、橙色主色）。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>移动端手势与传感器 · 四关任务</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+    background:radial-gradient(circle at 50% 0%,#fdf3e6,#fdf8f2 55%);color:#3a2f26;
+    line-height:1.8;min-height:100vh}
+  .wh_wrap{max-width:760px;margin:0 auto;padding:26px 16px 50px}
+
+  .wh_head{text-align:center;padding:10px 0 22px}
+  .wh_head .wh_tag{display:inline-block;font-size:12px;color:#b45309;background:#fdf3e6;
+    border:1px solid #f0d9bc;border-radius:999px;padding:3px 13px;margin-bottom:12px}
+  .wh_head h1{font-size:22px;letter-spacing:1px;color:#2c211a}
+  .wh_head h1 b{color:#d9781f}
+  .wh_head p{font-size:13px;color:#8b7b6b;margin-top:6px}
+
+  .wh_grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:6px}
+
+  .wh_card{display:block;position:relative;text-decoration:none;color:inherit;
+    background:#fff;border:1px solid #efe4d5;border-radius:16px;padding:20px 20px 16px;
+    box-shadow:0 6px 18px rgba(92,60,20,.07);
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+  .wh_card:hover{transform:translateY(-4px);border-color:#e8a75e;
+    box-shadow:0 12px 26px rgba(92,60,20,.14)}
+
+  .wh_no{position:absolute;right:16px;top:14px;font-size:26px;font-weight:bold;
+    color:#f6e7d2;font-family:Consolas,monospace;line-height:1}
+  .wh_card h2{font-size:16.5px;color:#2c211a;margin-bottom:6px;padding-right:40px}
+  .wh_dim{display:inline-block;font-size:11.5px;color:#b45309;background:#fdf3e6;
+    border-radius:999px;padding:1px 9px;margin-bottom:8px}
+  .wh_desc{font-size:12.5px;color:#7a6a58;line-height:1.85;min-height:46px}
+  .wh_go{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:bold;color:#d9781f}
+
+  .wh_foot{text-align:center;margin-top:26px;font-size:13px;color:#8b7b6b}
+  .wh_foot a{color:#8b7b6b;text-decoration:none;margin:0 10px}
+  .wh_foot a:hover{color:#d9781f}
+
+  @media (max-width:560px){
+    .wh_grid{grid-template-columns:1fr}
+    .wh_head h1{font-size:19px}
+    .wh_desc{min-height:0}
+  }
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <span class="wh_tag">移动端交互 · 四关递进</span>
+    <h1>移动端手势与传感器 · <b>四关任务</b></h1>
+    <p>点下面任意一张卡片进入对应任务页；每页顶部都可以互相跳转，也能返回首页。</p>
+  </div>
+
+  <div class="wh_grid">
+
+    <a class="wh_card" href="mobile-touch.html">
+      <span class="wh_no">01</span>
+      <h2>事件侦探</h2>
+      <span class="wh_dim">观察 · 记录 · 不写业务代码</span>
+      <p class="wh_desc">在探针区做单击、上拖、快滑、双指、长按五种操作，按触发顺序记录 touchstart / touchmove / touchend / click，并在轨迹草图里画出路径。</p>
+      <span class="wh_go">进入任务一 →</span>
+    </a>
+
+    <a class="wh_card" href="mobile-gesture.html">
+      <span class="wh_no">02</span>
+      <h2>手势卡片</h2>
+      <span class="wh_dim">★★ 手势识别</span>
+      <p class="wh_desc">四道中华美食卡片，左右滑动切换上一道 / 下一道。40px 阈值防误触、0.3s 过渡、300ms 冷却防连滑跳张、到边界有提示。</p>
+      <span class="wh_go">进入任务二 →</span>
+    </a>
+
+    <a class="wh_card" href="mobile-zoom.html">
+      <span class="wh_no">03</span>
+      <h2>图片查看器</h2>
+      <span class="wh_dim">★★ 双指缩放</span>
+      <p class="wh_desc">双指缩放 1x~4x（以两指中点为基准，图片不跳）、双击 1x/2x、放大后单指拖动、边界夹取与越界阻尼，附真机演示视频。</p>
+      <span class="wh_go">进入任务三 →</span>
+    </a>
+
+    <a class="wh_card" href="mobile-sensor.html">
+      <span class="wh_no">04</span>
+      <h2>摇一摇抽菜谱</h2>
+      <span class="wh_dim">★★ 传感器与降级</span>
+      <p class="wh_desc">用 devicemotion 的 accelerationIncludingGravity 计算合成加速度，超过 18 判定摇动并抽今日菜谱，1.5s 冷却；不支持时给出提示与降级按钮。</p>
+      <span class="wh_go">进入任务四 →</span>
+    </a>
+
+  </div>
+
+  <div class="wh_foot">
+    <a href="index.html">返回首页</a>
+    <a href="wh_prompt.md">提示词记录</a>
+  </div>
+</div>
+</body>
+</html>
