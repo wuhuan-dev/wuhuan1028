@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-16 14:08
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: 任务三 · 图片查看器（★★） - 移动端可交互看图：双指缩放 1x~4x（以两指中点
+                  为缩放基准，图片不跳）、放大后单指拖动查看细节、松手限制在边界内、
+                  双击在 1x / 2x 之间切换（0.25s 过渡）、缩回 1x 自动居中；
+                  缩放越界带阻尼，旋转/改变窗口尺寸不丢失缩放状态；
+                  页面打开时提示"双指缩放请用手机打开"。所有变量以 wh_ 开头。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>任务三 · 图片查看器：双指缩放 + 双击放大 + 拖动</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#0d1014;color:#e8ebf0;line-height:1.8}
+  .wh_wrap{max-width:720px;margin:0 auto;padding:16px 14px 50px}
+
+  .wh_head{padding:4px 2px 12px}
+  .wh_head h1{font-size:18px;letter-spacing:.5px}
+  .wh_head h1 b{color:#5eead4}
+  .wh_head p{font-size:12.5px;color:#8b97a8;margin-top:4px}
+  .wh_head .wh_links{margin-top:8px;font-size:12.5px}
+  .wh_head .wh_links a{color:#5eead4;text-decoration:none;margin-right:12px}
+
+  /* 打开页面的提示条 */
+  .wh_tip{display:flex;gap:8px;align-items:center;background:rgba(94,234,212,.12);
+    border:1px solid rgba(94,234,212,.35);color:#a7f3e4;border-radius:10px;
+    padding:9px 13px;font-size:12.5px;margin-bottom:12px;transition:opacity .4s}
+  .wh_tip.wh_hide{opacity:.45}
+  .wh_tip b{color:#5eead4}
+
+  /* 查看器容器：overflow:hidden 裁掉越界部分 */
+  .wh_viewer{position:relative;width:100%;height:60vh;min-height:320px;overflow:hidden;
+    background:#000;border-radius:14px;
+    touch-action:none;            /* 关键：禁用浏览器默认手势，缩放/拖动全部自己算 */
+    -webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent}
+
+  /* 被缩放的图片：transform-origin 设在左上角，位移与缩放的计算最直观 */
+  .wh_viewer img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;
+    transform-origin:0 0;will-change:transform;display:block;pointer-events:none}
+  .wh_viewer.wh_animate img{transition:transform .25s ease}
+
+  /* 缩放比例指示器（加分项） */
+  .wh_scale{position:absolute;right:10px;top:10px;background:rgba(0,0,0,.55);
+    border:1px solid rgba(94,234,212,.4);color:#5eead4;border-radius:999px;
+    padding:3px 11px;font-size:12px;font-family:Consolas,monospace;
+    pointer-events:none;backdrop-filter:blur(4px)}
+
+  .wh_hintbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:#8b97a8}
+  .wh_hintbar span{background:#161c25;border:1px solid #232d3a;border-radius:8px;padding:5px 11px}
+  .wh_hintbar b{color:#5eead4}
+
+  .wh_sec{background:#161c25;border:1px solid #232d3a;border-radius:13px;padding:16px 18px;margin-top:16px}
+  .wh_sec h3{font-size:14px;color:#5eead4;margin-bottom:8px}
+  .wh_sec p{font-size:13px;color:#b8c2d0;margin-bottom:6px}
+  .wh_sec code{background:#1f2937;color:#7dd3fc;border-radius:4px;padding:1px 6px;font-family:Consolas,monospace;font-size:12px}
+  .wh_sec ul{margin:6px 0 0 18px;font-size:13px;color:#b8c2d0}
+  .wh_sec li{margin-bottom:5px}
+
+  .wh_back{text-align:center;margin-top:20px;font-size:13px}
+  .wh_back a{color:#8b97a8;text-decoration:none;margin:0 10px}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>任务三 · <b>图片查看器：双指缩放 + 双击放大 + 拖动</b></h1>
+    <p>双指缩放 1x~4x · 双击 1x/2x · 放大后可拖动 · 边界限制 · 旋转不丢状态</p>
+    <div class="wh_links">
+      <a href="mobile-touch.html">任务一</a>
+      <a href="mobile-gesture.html">任务二</a>
+      <a href="mobile-sensor.html">任务四</a>
+      <a href="index.html">首页</a>
+    </div>
+  </div>
+
+  <!-- 页面打开时的提示（任务要求 6） -->
+  <div class="wh_tip" id="whTip">
+    <b>提示</b><span>双指缩放请用手机打开；桌面可用鼠标滚轮缩放、按住拖动、双击放大。</span>
+  </div>
+
+  <div class="wh_viewer wh_animate" id="whViewer">
+    <img id="whImg" src="img/food/food-1.jpg" alt="可缩放查看的美食大图">
+    <div class="wh_scale" id="whScale">1.00x</div>
+  </div>
+
+  <div class="wh_hintbar">
+    <span>当前倍数 <b id="whScale2">1.00</b>x</span>
+    <span>位移 X <b id="whTx">0</b>px</span>
+    <span>位移 Y <b id="whTy">0</b>px</span>
+    <span id="whGestureTag">状态：待操作</span>
+  </div>
+
+  <div class="wh_sec">
+    <h3>7 · 如何保证"缩放不跳"（答辩用）</h3>
+    <p>核心是一句话：<b>缩放时固定两指中点所对应的那一点图片不动</b>。图片用 <code>transform-origin: 0 0</code>，
+      变换写成 <code>translate(tx, ty) scale(s)</code>，则容器上一点 P 对应的图片坐标是 <code>(P - t) / s</code>。</p>
+    <p>要让缩放后这个图片坐标仍然落在 P 上，解出新的平移量：</p>
+    <p><code>t' = P - k · (P - t)</code>，其中 <code>k = s' / s</code>（新的缩放比例）。</p>
+    <p>所以每次双指移动时，先算新 scale，再用这个式子反推 tx / ty，图片就不会"跳走"；
+      如果只改 scale 不动 t，缩放就会围绕左上角进行，视觉上就是图片往右下窜——这就是常见 bug 的成因。</p>
+  </div>
+
+  <div class="wh_sec">
+    <h3>验收点逐条对应</h3>
+    <ul>
+      <li><b>① 以两指中心为基准、不跳</b>：<code>wh_zoomAt()</code> 用两指中点做基准点反推平移。</li>
+      <li><b>② 缩放到边界有阻尼</b>：<code>wh_dampScale()</code> 在 1x / 4x 之外按 0.18 系数衰减，松手回弹。</li>
+      <li><b>③ 1x 时不能拖出边界</b>：<code>wh_clampTranslate()</code> 在 s=1 时把 tx/ty 限制为 0。</li>
+      <li><b>④ 旋转/改尺寸不丢状态</b>：<code>resize</code> 时保留 scale，按新容器尺寸重新夹取位移。</li>
+    </ul>
+  </div>
+
+  <div class="wh_back">
+    <a href="mobile-gesture.html">← 任务二</a>
+    <a href="mobile-sensor.html">任务四 →</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: 任务三图片查看器逻辑 - 自实现双指缩放（以两指中点为基准反推平移，
+   *                 保证缩放不跳）、单指拖动、双击 1x/2x 切换、边界阻尼与夹取、
+   *                 resize 保持状态；桌面用滚轮与鼠标拖动做等价预览。
+   *                 所有变量以 wh_ 开头。
+   */
+
+  /** 容器与图片元素 */
+  var wh_viewer = document.getElementById("whViewer");
+  var wh_img = document.getElementById("whImg");
+
+  /** 缩放状态：scale 倍数，x/y 为 translate 像素（transform-origin 0 0） */
+  var wh_state = { scale: 1, x: 0, y: 0 };
+
+  /** 允许的最小/最大倍数 */
+  var wh_minScale = 1;
+  var wh_maxScale = 4;
+
+  /** 双指手势的临时数据 */
+  var wh_pinch = null;     // { startDist, startScale, baseX, baseY, centerX, centerY, startAngle }
+  /** 单指拖动的临时数据 */
+  var wh_drag = null;      // { startX, startY, baseX, baseY }
+  /** 是否是多指手势（用于屏蔽拖动） */
+  var wh_multi = false;
+
+  /** 上一次轻点的信息，用于自行判定双击 */
+  var wh_lastTap = { time: 0, x: 0, y: 0 };
+  /** 上一次执行双击缩放的时间，用于防止触摸双击与桌面 dblclick 重复触发 */
+  var wh_lastDouble = 0;
+
+  /**
+   * 功能: wh_apply
+   * 简介: 把当前 wh_state 写到图片的 transform 上，并同步右上角倍数徽标与下方数值面板。
+   *       不直接加 transition，动画由容器上的 wh_animate 类控制，避免拖动时出现延迟。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_apply() {
+    wh_img.style.transform = "translate(" + wh_state.x + "px," + wh_state.y + "px) scale(" + wh_state.scale + ")";
+    var wh_text = wh_state.scale.toFixed(2) + "x";
+    document.getElementById("whScale").textContent = wh_text;
+    document.getElementById("whScale2").textContent = wh_state.scale.toFixed(2);
+    document.getElementById("whTx").textContent = Math.round(wh_state.x);
+    document.getElementById("whTy").textContent = Math.round(wh_state.y);
+  }
+
+  /**
+   * 功能: wh_animateOnce
+   * 简介: 执行一次带动画的变换：临时给容器加 wh_animate（0.25s 过渡），
+   *       在下一帧写入新状态，动画结束后移除该类，恢复跟手效果。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_animateOnce(wh_scale, wh_x, wh_y) {
+    wh_viewer.classList.add("wh_animate");
+    wh_state.scale = wh_scale;
+    wh_state.x = wh_x;
+    wh_state.y = wh_y;
+    wh_apply();
+    setTimeout(function () {
+      wh_viewer.classList.remove("wh_animate");
+    }, 260);
+  }
+
+  /**
+   * 功能: wh_dampScale
+   * 简介: 缩放越界阻尼：期望倍数在 1~4 之内直接返回；超出时按 0.18 的系数衰减，
+   *       让手指仍能推动一点点（有"拉橡皮筋"的感觉），松手后由回弹夹回合法区间。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_dampScale(wh_raw) {
+    if (wh_raw > wh_maxScale) return wh_maxScale + (wh_raw - wh_maxScale) * 0.18;
+    if (wh_raw < wh_minScale) return wh_minScale - (wh_minScale - wh_raw) * 0.18;
+    return wh_raw;
+  }
+
+  /**
+   * 功能: wh_clampTranslate
+   * 简介: 把平移量限制在图片边界内。图片实际显示尺寸等于容器尺寸乘 scale，
+   *       因此 tx 的合法区间是 [宽 - 宽·s, 0]，ty 同理；s=1 时区间退化为 0，
+   *       即原始大小下无法拖出边界。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_clampTranslate(wh_x, wh_y, wh_s) {
+    var wh_w = wh_viewer.clientWidth;
+    var wh_h = wh_viewer.clientHeight;
+    var wh_minX = wh_w - wh_w * wh_s;
+    var wh_minY = wh_h - wh_h * wh_s;
+    if (wh_x > 0) wh_x = 0;
+    if (wh_x < wh_minX) wh_x = wh_minX;
+    if (wh_y > 0) wh_y = 0;
+    if (wh_y < wh_minY) wh_y = wh_minY;
+    return { x: wh_x, y: wh_y };
+  }
+
+  /**
+   * 功能: wh_zoomAt
+   * 简介: 以容器内某一点 (px, py) 为基准缩放。设 k = 新倍数 / 旧倍数，
+   *       要保证该点对应的图片内容不移动，平移量需满足 t' = P - k·(P - t)。
+   *       这是"缩放不跳"的核心公式。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_zoomAt(wh_newScale, wh_px, wh_py) {
+    var wh_oldScale = wh_state.scale;
+    var wh_k = wh_newScale / wh_oldScale;
+    wh_state.x = wh_px - wh_k * (wh_px - wh_state.x);
+    wh_state.y = wh_py - wh_k * (wh_py - wh_state.y);
+    wh_state.scale = wh_newScale;
+  }
+
+  /**
+   * 功能: wh_pointInViewer
+   * 简介: 把屏幕坐标换算成容器内的相对坐标（用于把触摸点当缩放基准）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_pointInViewer(wh_clientX, wh_clientY) {
+    var wh_rect = wh_viewer.getBoundingClientRect();
+    return { x: wh_clientX - wh_rect.left, y: wh_clientY - wh_rect.top };
+  }
+
+  /**
+   * 功能: wh_distance
+   * 简介: 计算两个触点之间的直线距离，用于按"距离比例"做双指缩放。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_distance(wh_a, wh_b) {
+    var wh_dx = wh_a.clientX - wh_b.clientX;
+    var wh_dy = wh_a.clientY - wh_b.clientY;
+    return Math.sqrt(wh_dx * wh_dx + wh_dy * wh_dy);
+  }
+
+  /**
+   * 功能: wh_onTouchStart
+   * 简介: 手指按下时分支处理：双指 → 记录初始距离、初始倍数与两指中点（作为缩放基准）；
+   *       单指 → 记录拖动起点与当前平移量，同时准备双击判定。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchStart(wh_e) {
+    wh_viewer.classList.remove("wh_animate");
+
+    if (wh_e.touches.length >= 2) {
+      wh_multi = true;
+      wh_drag = null;
+      var wh_a = wh_e.touches[0];
+      var wh_b = wh_e.touches[1];
+      var wh_center = wh_pointInViewer((wh_a.clientX + wh_b.clientX) / 2, (wh_a.clientY + wh_b.clientY) / 2);
+      wh_pinch = {
+        startDist: wh_distance(wh_a, wh_b),
+        startScale: wh_state.scale,
+        baseX: wh_state.x,
+        baseY: wh_state.y,
+        centerX: wh_center.x,
+        centerY: wh_center.y
+      };
+      document.getElementById("whGestureTag").textContent = "状态：双指缩放中";
+      return;
+    }
+
+    // 单指
+    var wh_t = wh_e.touches[0];
+    wh_drag = {
+      startX: wh_t.clientX,
+      startY: wh_t.clientY,
+      baseX: wh_state.x,
+      baseY: wh_state.y,
+      moved: 0
+    };
+    if (wh_state.scale > 1) {
+      document.getElementById("whGestureTag").textContent = "状态：单指拖动中";
+    }
+  }
+
+  /**
+   * 功能: wh_onTouchMove
+   * 简介: 双指时按距离比例算新倍数（先过阻尼函数），再以两指中点调用 wh_zoomAt
+   *       反推平移，最后夹取边界；单指且已放大时按位移平移图片。
+   *       全程 preventDefault，因为容器 touch-action:none 已禁用默认手势。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchMove(wh_e) {
+    if (wh_e.cancelable) wh_e.preventDefault();
+
+    // 双指缩放
+    if (wh_e.touches.length >= 2 && wh_pinch) {
+      var wh_a = wh_e.touches[0];
+      var wh_b = wh_e.touches[1];
+      var wh_dist = wh_distance(wh_a, wh_b);
+      var wh_raw = wh_pinch.startScale * (wh_dist / wh_pinch.startDist);
+      var wh_newScale = wh_dampScale(wh_raw);
+
+      // 先回到手势开始时的状态，再以当前两指中点缩放，避免累积误差造成漂移
+      wh_state.scale = wh_pinch.startScale;
+      wh_state.x = wh_pinch.baseX;
+      wh_state.y = wh_pinch.baseY;
+      var wh_center = wh_pointInViewer((wh_a.clientX + wh_b.clientX) / 2, (wh_a.clientY + wh_b.clientY) / 2);
+      wh_zoomAt(wh_newScale, wh_center.x, wh_center.y);
+      wh_apply();
+      return;
+    }
+
+    // 单指拖动（仅在放大后生效）
+    if (wh_e.touches.length === 1 && wh_drag) {
+      var wh_t = wh_e.touches[0];
+      var wh_dx = wh_t.clientX - wh_drag.startX;
+      var wh_dy = wh_t.clientY - wh_drag.startY;
+      wh_drag.moved = Math.max(wh_drag.moved, Math.abs(wh_dx) + Math.abs(wh_dy));
+
+      if (wh_state.scale > 1) {
+        wh_state.x = wh_drag.baseX + wh_dx;
+        wh_state.y = wh_drag.baseY + wh_dy;
+        wh_apply();
+      }
+    }
+  }
+
+  /**
+   * 功能: wh_onTouchEnd
+   * 简介: 抬手收尾：双指结束时把倍数夹回 1~4、位移夹回边界并回弹；
+   *       单指结束时同样夹取边界，并根据"位移很小 + 两次轻点间隔 < 300ms"
+   *       自行判定双击，在 1x 与 2x 之间以点击位置为基准切换。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchEnd(wh_e) {
+    var wh_wasMulti = wh_multi;
+
+    // 双指结束：回弹到合法区间
+    if (wh_wasMulti) {
+      var wh_s = Math.min(Math.max(wh_state.scale, wh_minScale), wh_maxScale);
+      var wh_clamped = wh_clampTranslate(wh_state.x, wh_state.y, wh_s);
+      wh_animateOnce(wh_s, wh_clamped.x, wh_clamped.y);
+      wh_multi = false;
+      wh_pinch = null;
+      document.getElementById("whGestureTag").textContent = "状态：双指缩放结束";
+      if (wh_e.touches.length === 0) {
+        wh_drag = null;
+      }
+      return;
+    }
+
+    if (!wh_drag) return;
+
+    // 单指：先夹取边界
+    var wh_c = wh_clampTranslate(wh_state.x, wh_state.y, wh_state.scale);
+    if (wh_c.x !== wh_state.x || wh_c.y !== wh_state.y) {
+      wh_animateOnce(wh_state.scale, wh_c.x, wh_c.y);
+    }
+
+    // 双击判定：位移很小且两次轻点间隔在 300ms 内
+    if (wh_drag.moved < 12 && wh_e.changedTouches.length) {
+      var wh_now = Date.now();
+      var wh_x = wh_e.changedTouches[0].clientX;
+      var wh_y = wh_e.changedTouches[0].clientY;
+      var wh_near = Math.abs(wh_x - wh_lastTap.x) < 40 && Math.abs(wh_y - wh_lastTap.y) < 40;
+
+      if (wh_now - wh_lastTap.time < 300 && wh_near) {
+        wh_onDoubleTap(wh_x, wh_y);
+        wh_lastTap.time = 0;
+      } else {
+        wh_lastTap = { time: wh_now, x: wh_x, y: wh_y };
+      }
+    }
+
+    wh_drag = null;
+    if (wh_e.touches.length === 0) {
+      document.getElementById("whGestureTag").textContent = "状态：待操作";
+    }
+  }
+
+  /**
+   * 功能: wh_onDoubleTap
+   * 简介: 双击处理：当前是 1x 时以双击点为中心放大到 2x；
+   *       当前大于 1x 时回到 1x 并居中（auto 居中，符合"缩回 1x 自动居中"）。
+   *       两种情况都用 0.25s 过渡。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onDoubleTap(wh_clientX, wh_clientY) {
+    // 节流：触摸双击与桌面 dblclick 可能接连到达，350ms 内只执行一次
+    var wh_ts = Date.now();
+    if (wh_ts - wh_lastDouble < 350) return;
+    wh_lastDouble = wh_ts;
+
+    if (wh_state.scale > 1.01) {
+      wh_animateOnce(1, 0, 0);
+      document.getElementById("whGestureTag").textContent = "状态：双击回到 1x 居中";
+      return;
+    }
+    var wh_p = wh_pointInViewer(wh_clientX, wh_clientY);
+    wh_state.scale = 1;
+    wh_state.x = 0;
+    wh_state.y = 0;
+    wh_zoomAt(2, wh_p.x, wh_p.y);
+    var wh_c = wh_clampTranslate(wh_state.x, wh_state.y, 2);
+    wh_animateOnce(2, wh_c.x, wh_c.y);
+    document.getElementById("whGestureTag").textContent = "状态：双击放大到 2x";
+  }
+
+  /**
+   * 功能: wh_onWheel
+   * 简介: 桌面预览用滚轮缩放：以鼠标位置为基准缩放，逻辑与双指一致，
+   *       方便在电脑上验收"缩放不跳"。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onWheel(wh_e) {
+    wh_e.preventDefault();
+    wh_viewer.classList.remove("wh_animate");
+    var wh_step = wh_e.deltaY < 0 ? 0.15 : -0.15;
+    var wh_newScale = Math.min(Math.max(wh_state.scale + wh_step, wh_minScale), wh_maxScale);
+    var wh_p = wh_pointInViewer(wh_e.clientX, wh_e.clientY);
+    wh_zoomAt(wh_newScale, wh_p.x, wh_p.y);
+    var wh_c = wh_clampTranslate(wh_state.x, wh_state.y, wh_state.scale);
+    wh_state.x = wh_c.x;
+    wh_state.y = wh_c.y;
+    wh_apply();
+  }
+
+  /**
+   * 功能: wh_onMouseDown
+   * 简介: 桌面预览用鼠标拖动：按下记录起点，拖动时按位移平移，
+   *       松开时夹取边界，等价于移动端的单指拖动。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onMouseDown(wh_e) {
+    if (wh_state.scale <= 1) return;
+    var wh_startX = wh_e.clientX;
+    var wh_startY = wh_e.clientY;
+    var wh_baseX = wh_state.x;
+    var wh_baseY = wh_state.y;
+    wh_viewer.classList.remove("wh_animate");
+
+    function wh_move(wh_ev) {
+      wh_state.x = wh_baseX + (wh_ev.clientX - wh_startX);
+      wh_state.y = wh_baseY + (wh_ev.clientY - wh_startY);
+      wh_apply();
+    }
+
+    function wh_up() {
+      var wh_c = wh_clampTranslate(wh_state.x, wh_state.y, wh_state.scale);
+      wh_animateOnce(wh_state.scale, wh_c.x, wh_c.y);
+      document.removeEventListener("mousemove", wh_move);
+      document.removeEventListener("mouseup", wh_up);
+    }
+
+    document.addEventListener("mousemove", wh_move);
+    document.addEventListener("mouseup", wh_up);
+  }
+
+  /**
+   * 功能: wh_onResize
+   * 简介: 屏幕旋转或窗口尺寸变化时，保留当前 scale 不变（不丢状态），
+   *       只按新的容器尺寸重新计算合法平移区间并夹取，必要时回弹。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onResize() {
+    var wh_s = Math.min(Math.max(wh_state.scale, wh_minScale), wh_maxScale);
+    var wh_c = wh_clampTranslate(wh_state.x, wh_state.y, wh_s);
+    wh_state.scale = wh_s;
+    wh_state.x = wh_c.x;
+    wh_state.y = wh_c.y;
+    wh_apply();
+  }
+
+  /**
+   * 功能: wh_bind
+   * 简介: 绑定触摸三件套、滚轮、鼠标拖动与窗口 resize；同时让打开页面的提示条
+   *       在 4 秒后变淡（文案仍保留，满足"页面打开时提示"）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_bind() {
+    wh_viewer.addEventListener("touchstart", wh_onTouchStart, { passive: true });
+    wh_viewer.addEventListener("touchmove", wh_onTouchMove, { passive: false });
+    wh_viewer.addEventListener("touchend", wh_onTouchEnd, { passive: true });
+    wh_viewer.addEventListener("touchcancel", wh_onTouchEnd, { passive: true });
+    wh_viewer.addEventListener("wheel", wh_onWheel, { passive: false });
+    wh_viewer.addEventListener("mousedown", wh_onMouseDown);
+    // 桌面预览用的双击放大/还原（移动端由 touchend 自行判定双击）
+    wh_viewer.addEventListener("dblclick", function (wh_e) {
+      wh_onDoubleTap(wh_e.clientX, wh_e.clientY);
+    });
+    window.addEventListener("resize", wh_onResize);
+    window.addEventListener("orientationchange", wh_onResize);
+
+    setTimeout(function () {
+      document.getElementById("whTip").classList.add("wh_hide");
+    }, 4000);
+  }
+
+  wh_apply();
+  wh_bind();
+</script>
+</body>
+</html>

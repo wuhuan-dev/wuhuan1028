@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-16 14:08
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: 任务一 · 事件侦探（观察·记录·不写业务代码） - 提供一个触摸探针区，
+                  依次做单击 / 向上拖动 / 向左快速滑 / 双指触摸 / 长按后抬起 5 种操作，
+                  实时按触发顺序记录 touchstart / touchmove / touchend / touchcancel / click，
+                  并自动汇总每次手势的事件序列、touchmove 次数、横纵向位移与耗时；
+                  右侧 canvas 绘制手指轨迹草图，页面下方给出三个必答问题的结论。
+                  用手机或 DevTools 设备模式打开。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>任务一 · 事件侦探：一次拖动到底发生了什么</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#0f1116;color:#e6e8ee;line-height:1.8;font-size:14px}
+  .wh_wrap{max-width:1080px;margin:0 auto;padding:22px 16px 50px}
+
+  .wh_head{background:linear-gradient(135deg,#1b2130,#27334d);border-radius:14px;padding:20px 22px;margin-bottom:16px;border:1px solid #2f3b52}
+  .wh_head h1{font-size:19px;letter-spacing:1px;margin-bottom:6px}
+  .wh_head h1 b{color:#6ee7ff}
+  .wh_head p{font-size:12.5px;color:#9aa7bd}
+  .wh_head .wh_links{margin-top:10px;font-size:12.5px}
+  .wh_head .wh_links a{color:#6ee7ff;text-decoration:none;margin-right:14px}
+
+  .wh_sec{background:#161b26;border:1px solid #263045;border-radius:12px;padding:18px 20px;margin-bottom:16px}
+  .wh_sec > h2{font-size:15px;color:#e6e8ee;margin-bottom:10px;padding-left:9px;border-left:3px solid #6ee7ff}
+  .wh_sec > h2 span{font-size:12px;color:#7d8aa0;font-weight:normal;margin-left:6px}
+  .wh_sec p{font-size:13px;color:#b7c1d2;margin-bottom:8px}
+  .wh_sec p b{color:#fff}
+
+  /* 操作清单 */
+  .wh_ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .wh_op{border:1px solid #2c3850;border-radius:9px;padding:10px 12px;background:#1b2231;font-size:12.5px;color:#b7c1d2}
+  .wh_op b{color:#6ee7ff;display:block;font-size:13px;margin-bottom:2px}
+
+  /* 实时状态 */
+  .wh_state{display:flex;flex-wrap:wrap;gap:10px}
+  .wh_state div{flex:1 1 120px;background:#1b2231;border:1px solid #2c3850;border-radius:9px;padding:9px 12px;font-size:12px;color:#8e9bb2}
+  .wh_state div b{display:block;color:#6ee7ff;font-size:16px;font-family:Consolas,monospace}
+
+  /* 探针区 */
+  .wh_probe{position:relative;height:300px;border:2px dashed #3a4a68;border-radius:12px;
+    background:radial-gradient(circle at 50% 40%,#1d2b3d,#141a25);overflow:hidden;
+    display:flex;align-items:center;justify-content:center;touch-action:none;
+    -webkit-user-select:none;user-select:none;cursor:crosshair}
+  .wh_probe.wh_active{border-color:#6ee7ff;background:radial-gradient(circle at 50% 40%,#1f3a4d,#141a25)}
+  .wh_probe .wh_hint{text-align:center;color:#5d6d87;font-size:13px;pointer-events:none}
+  .wh_probe .wh_hint b{display:block;font-size:16px;color:#7d8ea8;margin-bottom:4px}
+  .wh_dot{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;
+    background:rgba(110,231,255,.85);box-shadow:0 0 14px rgba(110,231,255,.9);pointer-events:none}
+
+  /* 表格 */
+  .wh_scroll{max-height:300px;overflow:auto;border:1px solid #263045;border-radius:9px}
+  table.wh_tb{width:100%;border-collapse:collapse;font-size:12px}
+  table.wh_tb th,table.wh_tb td{border-bottom:1px solid #222c3e;padding:6px 9px;text-align:left;white-space:nowrap}
+  table.wh_tb th{background:#1b2231;color:#8e9bb2;position:sticky;top:0;font-weight:normal}
+  table.wh_tb td{color:#c3ccdb;font-family:Consolas,monospace}
+  .wh_ev_touchstart{color:#7ee787!important}
+  .wh_ev_touchmove{color:#79c0ff!important}
+  .wh_ev_touchend{color:#ffd580!important}
+  .wh_ev_touchcancel{color:#ff9d94!important}
+  .wh_ev_click{color:#d2a8ff!important}
+
+  .wh_empty{color:#5d6d87;font-size:12px;padding:14px;text-align:center}
+
+  /* 轨迹画布 */
+  .wh_canvas{width:100%;height:220px;background:#11161f;border:1px solid #263045;border-radius:9px;display:block}
+
+  /* 问答 */
+  .wh_qa dt{font-size:13.5px;color:#6ee7ff;font-weight:bold;margin-top:12px}
+  .wh_qa dd{font-size:13px;color:#b7c1d2;border-left:3px solid #2c3850;padding-left:12px;margin-top:5px}
+  .wh_qa dd b{color:#fff}
+  .wh_qa dd code{background:#1e2737;color:#79c0ff;border-radius:4px;padding:1px 6px;font-family:Consolas,monospace;font-size:12px}
+
+  .wh_btn{display:inline-block;border:none;border-radius:8px;padding:8px 16px;font-size:12.5px;
+    background:#243149;color:#b7c1d2;cursor:pointer;margin-right:8px}
+  .wh_btn:hover{background:#2f4060;color:#fff}
+  .wh_note{font-size:12px;color:#6b7a91;margin-top:8px}
+
+  .wh_back{text-align:center;margin-top:22px;font-size:13px}
+  .wh_back a{color:#8e9bb2;text-decoration:none;margin:0 10px}
+  .wh_back a:hover{color:#6ee7ff}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>任务一 · <b>事件侦探：一次拖动到底发生了什么</b></h1>
+    <p>维度：观察 · 记录 · 不写业务代码。用手机（或 DevTools 设备模式）打开本页，对第 3 节探针区依次做 5 种操作，把事件触发顺序记录下来。</p>
+    <div class="wh_links">
+      <a href="mobile-gesture.html">任务二 · 手势卡片</a>
+      <a href="mobile-zoom.html">任务三 · 图片查看器</a>
+      <a href="mobile-sensor.html">任务四 · 摇一摇</a>
+      <a href="index.html">返回首页</a>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>1 · 五种操作清单</h2>
+    <div class="wh_ops">
+      <div class="wh_op"><b>① 单击</b>轻点一下，手指不动，很快抬起</div>
+      <div class="wh_op"><b>② 向上拖动</b>按住后向上移动约 100px</div>
+      <div class="wh_op"><b>③ 向左快速滑</b>短距离快速甩动（fling）</div>
+      <div class="wh_op"><b>④ 双指触摸</b>两指同时按下再抬起</div>
+      <div class="wh_op"><b>⑤ 长按后抬起</b>按住约 600ms 不动再抬</div>
+    </div>
+    <p class="wh_note">提示：桌面浏览器用鼠标不会触发 touch 事件，请开启 DevTools 的设备模式（Ctrl+Shift+M）或直接用手机访问。</p>
+  </div>
+
+  <div class="wh_sec">
+    <h2>2 · 实时状态 <span>当前触点与位移</span></h2>
+    <div class="wh_state">
+      <div>触摸点数<b id="whPointNum">0</b></div>
+      <div>坐标 X / Y<b id="whPos">- / -</b></div>
+      <div>本次 touchmove<b id="whMoveCount">0</b></div>
+      <div>横向位移 dx<b id="whDx">0</b></div>
+      <div>纵向位移 dy<b id="whDy">0</b></div>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>3 · 探针区 <span>在这里做 5 种操作</span></h2>
+    <div class="wh_probe" id="whProbe">
+      <div class="wh_hint"><b>把手指放上来</b>每次操作结束后下方会自动生成一条手势记录</div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="wh_btn" id="whClear">清空记录</button>
+      <button class="wh_btn" id="whDemo">查看判定说明</button>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>4 · 事件流水 <span>按真实触发顺序追加</span></h2>
+    <div class="wh_scroll">
+      <table class="wh_tb">
+        <thead>
+          <tr><th>#</th><th>事件</th><th>相对时间(ms)</th><th>touches</th><th>changedTouches</th><th>X</th><th>Y</th></tr>
+        </thead>
+        <tbody id="whLogBody">
+          <tr><td colspan="7" class="wh_empty">暂无记录，请在探针区操作</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>5 · 手势记录表 <span>每次手势汇总一行</span></h2>
+    <div class="wh_scroll">
+      <table class="wh_tb">
+        <thead>
+          <tr><th>#</th><th>判定操作</th><th>事件顺序</th><th>touchmove 次数</th><th>dx</th><th>dy</th><th>耗时(ms)</th><th>click</th></tr>
+        </thead>
+        <tbody id="whGestureBody">
+          <tr><td colspan="8" class="wh_empty">暂无手势记录</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="wh_sec">
+    <h2>6 · 轨迹草图（加分） <span>canvas 绘制手指实际路径</span></h2>
+    <canvas class="wh_canvas" id="whCanvas" width="1000" height="440"></canvas>
+    <p class="wh_note">每次手势用不同颜色绘制 touchmove 采样点连线，○ 为起点，× 为终点。</p>
+  </div>
+
+  <div class="wh_sec">
+    <h2>7 · 三个必答问题 <span>依据上面的实测数据</span></h2>
+    <dl class="wh_qa">
+      <dt>① 一次拖动里 touchmove 大约触发多少次？和距离有什么关系？</dt>
+      <dd>次数和<b>时长</b>强相关，和距离只是间接相关：浏览器按帧派发 touchmove（约每 16ms 一次，60fps），
+        所以慢拖 1 秒约有 60 次，快速一甩 0.2 秒只有十几次。同样距离下拖得越慢、次数越多；
+        手指移动越快，单次 touchmove 之间的间隔坐标差越大。可以看第 5 节表格里每次手势的"次数 / 耗时"比值验证。</dd>
+
+      <dt>② click 出现在 touchend 之前还是之后？</dt>
+      <dd>在 <b>touchend 之后</b>。顺序是 <code>touchstart → touchmove… → touchend → click</code>。
+        早期移动浏览器 click 会延迟约 300ms（等待判断是否双击缩放），现代浏览器在
+        <code>&lt;meta name="viewport" content="width=device-width"&gt;</code> 且未允许缩放时会立即派发。
+        注意：手指移动距离过大时浏览器可能判定为滑动而<b>不再派发 click</b>。</dd>
+
+      <dt>③ 如果把 touchend 换成 touchcancel，会发生什么？</dt>
+      <dd><code>touchcancel</code> 只在手势被<b>系统或浏览器打断</b>时触发（来电、通知下拉、父级滚动接管、手势被取消），
+        正常抬手只会派发 touchend。若只监听 touchcancel 而不监听 touchend，正常的抬手将收不到结束信号：
+        手势状态卡住、位移不结算、探针区一直处于激活态；而 click 仍可能在之后到达，造成"没有结束却出现 click"。
+        正确做法是两个事件都监听，并在 touchcancel 时做与 touchend 相同的收尾（标记为被打断）。</dd>
+    </dl>
+  </div>
+
+  <div class="wh_back">
+    <a href="mobile-gesture.html">任务二 手势卡片 →</a>
+    <a href="index.html">返回首页</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: 任务一事件侦探的探针逻辑 - 监听 touchstart / touchmove / touchend /
+   *                 touchcancel / click，按触发顺序写入事件流水表，并自动汇总每次手势的
+   *                 事件序列、touchmove 次数、位移、耗时与操作类型判定，同时在 canvas 上
+   *                 绘制手指轨迹。所有变量以 wh_ 开头。
+   */
+
+  /** 探针区元素 */
+  var wh_probeEl = document.getElementById("whProbe");
+  /** 事件流水表体 */
+  var wh_logBody = document.getElementById("whLogBody");
+  /** 手势记录表体 */
+  var wh_gestureBody = document.getElementById("whGestureBody");
+  /** 轨迹画布与其上下文 */
+  var wh_canvas = document.getElementById("whCanvas");
+  var wh_ctx = wh_canvas.getContext("2d");
+
+  /** 事件流水数组：每项 { name, t, touches, changed, x, y } */
+  var wh_events = [];
+  /** 手势汇总数组：每项 { label, seq, moveCount, dx, dy, duration, hasClick, path } */
+  var wh_gestures = [];
+  /** 当前进行中的手势对象，抬手后结算并 push 到 wh_gestures */
+  var wh_current = null;
+  /** 页面打开时刻，用于计算相对时间 */
+  var wh_startAt = Date.now();
+  /** 轨迹配色轮换 */
+  var wh_colors = ["#6ee7ff", "#7ee787", "#ffd580", "#ff9d94", "#d2a8ff", "#79c0ff"];
+
+  /**
+   * 功能: wh_now
+   * 简介: 返回相对页面打开时刻的毫秒数，用于事件流水里的相对时间列。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_now() {
+    return Date.now() - wh_startAt;
+  }
+
+  /**
+   * 功能: wh_firstTouch
+   * 简介: 从事件对象里取出第一个触点（优先 changedTouches，其次 touches），
+   *       拿不到时返回 null，避免桌面环境无触点时读取 undefined 报错。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_firstTouch(wh_e) {
+    var wh_list = (wh_e.changedTouches && wh_e.changedTouches.length)
+      ? wh_e.changedTouches
+      : wh_e.touches;
+    return (wh_list && wh_list.length) ? wh_list[0] : null;
+  }
+
+  /**
+   * 功能: wh_logEvent
+   * 简介: 记录一次原生事件：写入 wh_events 并在事件流水表追加一行（含事件名、相对时间、
+   *       touches / changedTouches 数量、触点坐标）。同时把事件名加入当前手势的序列串，
+   *       供第 5 节汇总使用。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_logEvent(wh_name, wh_e) {
+    var wh_touch = wh_firstTouch(wh_e);
+    var wh_t = wh_now();
+    var wh_row = {
+      name: wh_name,
+      t: wh_t,
+      touches: wh_e.touches ? wh_e.touches.length : 0,
+      changed: wh_e.changedTouches ? wh_e.changedTouches.length : 0,
+      x: wh_touch ? Math.round(wh_touch.clientX) : "-",
+      y: wh_touch ? Math.round(wh_touch.clientY) : "-"
+    };
+    wh_events.push(wh_row);
+
+    // 手势事件顺序串：touchmove 连续多次折叠成 touchmove×N
+    if (wh_current) {
+      if (wh_name === "touchmove") {
+        wh_current.moveCount++;
+      } else {
+        wh_current.seq.push(wh_name);
+      }
+    }
+
+    // 追加表格行
+    if (wh_events.length === 1) {
+      wh_logBody.innerHTML = "";
+    }
+    var wh_tr = document.createElement("tr");
+    wh_tr.innerHTML = '<td>' + wh_events.length + '</td>'
+      + '<td class="wh_ev_' + wh_name + '">' + wh_name + '</td>'
+      + '<td>' + wh_t + '</td>'
+      + '<td>' + wh_row.touches + '</td>'
+      + '<td>' + wh_row.changed + '</td>'
+      + '<td>' + wh_row.x + '</td>'
+      + '<td>' + wh_row.y + '</td>';
+    wh_logBody.appendChild(wh_tr);
+    wh_logBody.parentElement.parentElement.scrollTop = 1e6;
+  }
+
+  /**
+   * 功能: wh_updateState
+   * 简介: 刷新第 2 节的实时状态面板：触点数量、当前坐标、本次 touchmove 次数、
+   *       相对起点的横向 dx 与纵向 dy。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_updateState(wh_touch) {
+    document.getElementById("whPointNum").textContent = wh_touch && wh_touch.touches ? wh_touch.touches.length : 0;
+    if (wh_touch && wh_current) {
+      document.getElementById("whPos").textContent = Math.round(wh_touch.clientX) + " / " + Math.round(wh_touch.clientY);
+      document.getElementById("whMoveCount").textContent = wh_current.moveCount;
+      document.getElementById("whDx").textContent = Math.round(wh_touch.clientX - wh_current.startX);
+      document.getElementById("whDy").textContent = Math.round(wh_touch.clientY - wh_current.startY);
+    }
+  }
+
+  /**
+   * 功能: wh_labelGesture
+   * 简介: 依据起点到终点的位移、耗时与触点数，把一次手势判定为
+   *       双指触摸 / 向左快速滑 / 向上拖动 / 长按后抬起 / 单击 / 其他拖动。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_labelGesture(wh_g) {
+    var wh_dx = wh_g.dx;
+    var wh_dy = wh_g.dy;
+    var wh_dist = Math.sqrt(wh_dx * wh_dx + wh_dy * wh_dy);
+    var wh_speed = wh_g.duration > 0 ? wh_dist / wh_g.duration : 0;
+
+    if (wh_g.maxTouches >= 2) return "④ 双指触摸";
+    if (wh_dist > 30 && Math.abs(wh_dx) >= Math.abs(wh_dy)) {
+      return wh_dx < 0
+        ? (wh_speed > 0.5 ? "③ 向左快速滑" : "向左拖动")
+        : (wh_speed > 0.5 ? "向右快速滑" : "向右拖动");
+    }
+    if (wh_dist > 30 && wh_dy < 0) return "② 向上拖动";
+    if (wh_dist > 30) return "向下拖动";
+    if (wh_g.duration >= 400) return "⑤ 长按后抬起";
+    return "① 单击";
+  }
+
+  /**
+   * 功能: wh_finishGesture
+   * 简介: 手势结束时结算：算位移、耗时、判定类型，写入手势记录表并绘制轨迹。
+   *       由 touchend / touchcancel 调用；带 wh_cancelled 标记区分是被打断还是正常抬手。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_finishGesture(wh_cancelled) {
+    if (!wh_current) return;
+    var wh_g = wh_current;
+    wh_current = null;
+
+    wh_g.dx = wh_g.endX - wh_g.startX;
+    wh_g.dy = wh_g.endY - wh_g.startY;
+    wh_g.duration = wh_g.endAt - wh_g.startAt;
+    wh_g.label = wh_labelGesture(wh_g) + (wh_cancelled ? "（被 touchcancel 打断）" : "");
+    wh_gestures.push(wh_g);
+
+    // 手势表：首条记录时清空占位行
+    if (wh_gestures.length === 1) {
+      wh_gestureBody.innerHTML = "";
+    }
+    var wh_seq = wh_g.seq.join(" → ") + (wh_g.moveCount ? " → touchmove×" + wh_g.moveCount : "");
+    var wh_tr = document.createElement("tr");
+    wh_tr.innerHTML = '<td>' + wh_gestures.length + '</td>'
+      + '<td>' + wh_g.label + '</td>'
+      + '<td>' + wh_seq + '</td>'
+      + '<td>' + wh_g.moveCount + '</td>'
+      + '<td>' + Math.round(wh_g.dx) + '</td>'
+      + '<td>' + Math.round(wh_g.dy) + '</td>'
+      + '<td>' + wh_g.duration + '</td>'
+      + '<td>' + (wh_g.hasClick ? "有（在 touchend 之后）" : "无") + '</td>';
+    wh_gestureBody.appendChild(wh_tr);
+
+    wh_drawPath(wh_g);
+    wh_probeEl.classList.remove("wh_active");
+    var wh_dot = wh_probeEl.querySelector(".wh_dot");
+    if (wh_dot) wh_dot.remove();
+  }
+
+  /**
+   * 功能: wh_drawPath
+   * 简介: 在 canvas 上绘制一次手势的轨迹：touchmove 采样点连成折线，
+   *       ○ 标起点、× 标终点，每次手势换一种颜色。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_drawPath(wh_g) {
+    var wh_ratio = wh_canvas.width / wh_canvas.clientWidth;
+    var wh_color = wh_colors[(wh_gestures.length - 1) % wh_colors.length];
+
+    wh_ctx.strokeStyle = wh_color;
+    wh_ctx.lineWidth = 2 * wh_ratio;
+    wh_ctx.beginPath();
+    for (var wh_i = 0; wh_i < wh_g.path.length; wh_i++) {
+      var wh_p = wh_g.path[wh_i];
+      var wh_x = wh_p.x * wh_ratio;
+      var wh_y = (wh_p.y - wh_canvas.getBoundingClientRect().top) * wh_ratio;
+      if (wh_i === 0) wh_ctx.moveTo(wh_x, wh_y);
+      else wh_ctx.lineTo(wh_x, wh_y);
+    }
+    wh_ctx.stroke();
+
+    // 起点 ○
+    if (wh_g.path.length) {
+      var wh_s = wh_g.path[0];
+      wh_ctx.beginPath();
+      wh_ctx.arc(wh_s.x * wh_ratio, (wh_s.y - wh_canvas.getBoundingClientRect().top) * wh_ratio, 6 * wh_ratio, 0, Math.PI * 2);
+      wh_ctx.stroke();
+
+      // 终点 ×
+      var wh_l = wh_g.path[wh_g.path.length - 1];
+      var wh_lx = wh_l.x * wh_ratio;
+      var wh_ly = (wh_l.y - wh_canvas.getBoundingClientRect().top) * wh_ratio;
+      wh_ctx.beginPath();
+      wh_ctx.moveTo(wh_lx - 6 * wh_ratio, wh_ly - 6 * wh_ratio);
+      wh_ctx.lineTo(wh_lx + 6 * wh_ratio, wh_ly + 6 * wh_ratio);
+      wh_ctx.moveTo(wh_lx + 6 * wh_ratio, wh_ly - 6 * wh_ratio);
+      wh_ctx.lineTo(wh_lx - 6 * wh_ratio, wh_ly + 6 * wh_ratio);
+      wh_ctx.stroke();
+    }
+  }
+
+  /**
+   * 功能: wh_onTouchStart
+   * 简介: 手指按下：创建当前手势对象（记录起点坐标、时间、触点数、路径），
+   *       给探针区加高亮，并绘制一个跟随手指的光点。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchStart(wh_e) {
+    var wh_t = wh_firstTouch(wh_e);
+    if (!wh_t) return;
+    wh_current = {
+      startX: wh_t.clientX,
+      startY: wh_t.clientY,
+      endX: wh_t.clientX,
+      endY: wh_t.clientY,
+      startAt: Date.now(),
+      endAt: Date.now(),
+      moveCount: 0,
+      maxTouches: wh_e.touches.length,
+      seq: ["touchstart"],
+      hasClick: false,
+      path: [{ x: wh_t.clientX, y: wh_t.clientY }]
+    };
+    wh_probeEl.classList.add("wh_active");
+    wh_logEvent("touchstart", wh_e);
+    wh_updateState(wh_e.touches.length ? { touches: wh_e.touches, clientX: wh_t.clientX, clientY: wh_t.clientY } : null);
+  }
+
+  /**
+   * 功能: wh_onTouchMove
+   * 简介: 手指移动：更新终点坐标与路径采样点，刷新实时位移；
+   *       光点跟随手指位置。这里不阻止默认行为，是为了观察页面是否跟着滚动。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchMove(wh_e) {
+    var wh_t = wh_firstTouch(wh_e);
+    if (!wh_t) return;
+    if (wh_current) {
+      wh_current.endX = wh_t.clientX;
+      wh_current.endY = wh_t.clientY;
+      wh_current.endAt = Date.now();
+      if (wh_e.touches.length > wh_current.maxTouches) {
+        wh_current.maxTouches = wh_e.touches.length;
+      }
+      wh_current.path.push({ x: wh_t.clientX, y: wh_t.clientY });
+    }
+    wh_logEvent("touchmove", wh_e);
+
+    // 光点跟随
+    var wh_rect = wh_probeEl.getBoundingClientRect();
+    var wh_dot = wh_probeEl.querySelector(".wh_dot");
+    if (!wh_dot) {
+      wh_dot = document.createElement("div");
+      wh_dot.className = "wh_dot";
+      wh_probeEl.appendChild(wh_dot);
+    }
+    wh_dot.style.left = (wh_t.clientX - wh_rect.left) + "px";
+    wh_dot.style.top = (wh_t.clientY - wh_rect.top) + "px";
+
+    wh_updateState(wh_e);
+  }
+
+  /**
+   * 功能: wh_onTouchEnd
+   * 简介: 正常抬手：记录事件后结算当前手势。click 通常在此之后到达，
+   *       由 wh_onClick 把 hasClick 补到同一手势上（因为当前手势已结算，改在最近一条上标记）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchEnd(wh_e) {
+    var wh_t = wh_firstTouch(wh_e);
+    if (wh_t && wh_current) {
+      wh_current.endX = wh_t.clientX;
+      wh_current.endY = wh_t.clientY;
+      wh_current.endAt = Date.now();
+    }
+    wh_logEvent("touchend", wh_e);
+    wh_finishGesture(false);
+  }
+
+  /**
+   * 功能: wh_onTouchCancel
+   * 简介: 手势被打断：记录 touchcancel 后同样结算，并在记录里注明"被 touchcancel 打断"，
+   *       与 touchend 的处理保持一致，避免手势状态卡住。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchCancel(wh_e) {
+    wh_logEvent("touchcancel", wh_e);
+    wh_finishGesture(true);
+  }
+
+  /**
+   * 功能: wh_onClick
+   * 简介: 点击：记录 click 事件，并把它标记到最近一次手势记录上，用来验证
+   *       "click 出现在 touchend 之后"。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onClick(wh_e) {
+    wh_logEvent("click", wh_e);
+    var wh_last = wh_gestures[wh_gestures.length - 1];
+    if (wh_last && !wh_last.hasClick) {
+      wh_last.hasClick = true;
+      var wh_rows = wh_gestureBody.querySelectorAll("tr");
+      var wh_row = wh_rows[wh_rows.length - 1];
+      if (wh_row && wh_row.cells.length >= 8) {
+        wh_row.cells[7].textContent = "有（在 touchend 之后）";
+      }
+    }
+  }
+
+  /**
+   * 功能: wh_clearAll
+   * 简介: 清空事件流水、手势记录、轨迹画布与实时状态，回到初始界面。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_clearAll() {
+    wh_events = [];
+    wh_gestures = [];
+    wh_current = null;
+    wh_logBody.innerHTML = '<tr><td colspan="7" class="wh_empty">暂无记录，请在探针区操作</td></tr>';
+    wh_gestureBody.innerHTML = '<tr><td colspan="8" class="wh_empty">暂无手势记录</td></tr>';
+    wh_ctx.clearRect(0, 0, wh_canvas.width, wh_canvas.height);
+    document.getElementById("whPointNum").textContent = "0";
+    document.getElementById("whPos").textContent = "- / -";
+    document.getElementById("whMoveCount").textContent = "0";
+    document.getElementById("whDx").textContent = "0";
+    document.getElementById("whDy").textContent = "0";
+  }
+
+  /**
+   * 功能: wh_bindEvents
+   * 简介: 把 5 类事件绑定到探针区：touchstart / touchmove / touchend / touchcancel / click；
+   *       同时绑定"清空记录"按钮。touchmove 用 passive:false 以便未来需要时能 preventDefault。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_bindEvents() {
+    wh_probeEl.addEventListener("touchstart", wh_onTouchStart, { passive: true });
+    wh_probeEl.addEventListener("touchmove", wh_onTouchMove, { passive: false });
+    wh_probeEl.addEventListener("touchend", wh_onTouchEnd, { passive: true });
+    wh_probeEl.addEventListener("touchcancel", wh_onTouchCancel, { passive: true });
+    wh_probeEl.addEventListener("click", wh_onClick);
+    document.getElementById("whClear").addEventListener("click", wh_clearAll);
+    document.getElementById("whDemo").addEventListener("click", function () {
+      alert("判定规则：\n双指 → ④ 双指触摸；水平位移为主且速度>0.5px/ms → ③ 快速滑；\n纵向位移>30px 且向上 → ② 向上拖动；位移<30px 且耗时≥400ms → ⑤ 长按；\n其余小位移 → ① 单击。");
+    });
+  }
+
+  wh_bindEvents();
+</script>
+</body>
+</html>

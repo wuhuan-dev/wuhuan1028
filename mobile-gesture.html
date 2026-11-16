@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-16 14:08
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: 任务二 · 手势卡片（★） - 移动端"中华美食卡片"：共 4 道菜（菜名、简介、
+                  配图与渐变背景），左右滑动切换上一道/下一道，底部显示"第 N/4 张"。
+                  监听 touchstart / touchend，用 changedTouches[0] 计算横向位移，阈值 40px；
+                  左滑下一张、右滑上一张，到边界给出"已经是第一张/最后一张"提示；
+                  卡片容器 touch-action: pan-y 保证页面仍可纵向滚动；切换带 0.3s 过渡动画，
+                  并用 300ms 冷却防止快速连滑一次跳两张。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任务二 · 手势卡片：左右滑动切换内容</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#fdf8f2;color:#3a2f26;line-height:1.8;
+    -webkit-tap-highlight-color:transparent}
+  .wh_wrap{max-width:520px;margin:0 auto;padding:16px 14px 60px}
+
+  .wh_head{padding:6px 4px 14px}
+  .wh_head h1{font-size:18px;letter-spacing:.5px;color:#2c211a}
+  .wh_head h1 b{color:#d9781f}
+  .wh_head p{font-size:12.5px;color:#8b7b6b;margin-top:4px}
+  .wh_head .wh_links{margin-top:8px;font-size:12.5px}
+  .wh_head .wh_links a{color:#d9781f;text-decoration:none;margin-right:12px}
+
+  /* 卡片：左右滑动的容器，touch-action: pan-y 让纵向滚动交给页面 */
+  .wh_deck{position:relative;border-radius:20px;overflow:hidden;
+    touch-action:pan-y;-webkit-user-select:none;user-select:none;
+    box-shadow:0 14px 34px rgba(92,60,20,.18);background:#e8dccb}
+
+  /* 单张卡片：图片在上，渐变遮罩，文字在下 */
+  .wh_card{position:relative;height:440px;transition:transform .3s ease,opacity .3s ease}
+  .wh_card.wh_out_left{transform:translateX(-36px);opacity:0}
+  .wh_card.wh_out_right{transform:translateX(36px);opacity:0}
+  .wh_card.wh_in_right{transform:translateX(36px);opacity:0}
+  .wh_card.wh_in_left{transform:translateX(-36px);opacity:0}
+  .wh_card img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* 每道菜有自己的渐变背景，图片加载失败时也能看出配色 */
+  .wh_grad{position:absolute;inset:0;opacity:.92}
+  .wh_g1{background:linear-gradient(160deg,#7c2d12,#c2410c 55%,#f59e0b)}
+  .wh_g2{background:linear-gradient(160deg,#92400e,#d97706 55%,#fbbf24)}
+  .wh_g3{background:linear-gradient(160deg,#9a3412,#ea580c 55%,#fcd34d)}
+  .wh_g4{background:linear-gradient(160deg,#a16207,#eab308 55%,#fde68a)}
+
+  .wh_mask{position:absolute;inset:0;background:linear-gradient(transparent 30%,rgba(30,16,6,.86))}
+  .wh_info{position:absolute;left:0;right:0;bottom:0;padding:20px 22px 24px;color:#fff}
+  .wh_badge{display:inline-block;font-size:11.5px;padding:2px 10px;border-radius:999px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);margin-bottom:8px}
+  .wh_info h2{font-size:22px;letter-spacing:1px;margin-bottom:6px}
+  .wh_info p{font-size:13px;color:#f1e4d6;line-height:1.7}
+
+  /* 底部指示器 */
+  .wh_bar{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:0 4px}
+  .wh_idx{font-size:14px;font-weight:bold;color:#7a5c3a}
+  .wh_idx b{color:#d9781f;font-size:17px}
+  .wh_dots{display:flex;gap:6px}
+  .wh_dots i{width:7px;height:7px;border-radius:999px;background:#e0cfba;transition:all .25s}
+  .wh_dots i.wh_on{width:20px;background:#d9781f}
+
+  /* 边界提示 toast */
+  .wh_toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);
+    background:rgba(40,24,10,.88);color:#fff;font-size:13.5px;padding:10px 20px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99;white-space:nowrap}
+  .wh_toast.wh_show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+  /* 实时位移条 */
+  .wh_meter{margin-top:12px;font-size:12px;color:#8b7b6b;display:flex;justify-content:space-between}
+  .wh_meter b{color:#3a2f26;font-family:Consolas,monospace}
+
+  .wh_sec{background:#fff;border:1px solid #efe4d5;border-radius:14px;padding:16px 18px;margin-top:18px}
+  .wh_sec h3{font-size:14px;color:#8a5a20;margin-bottom:8px}
+  .wh_sec p{font-size:13px;color:#5c4f43;margin-bottom:6px}
+  .wh_sec code{background:#fdf3e6;color:#b45309;border-radius:4px;padding:1px 6px;font-family:Consolas,monospace;font-size:12px}
+  .wh_sec ul{margin:6px 0 0 18px;font-size:13px;color:#5c4f43}
+  .wh_sec li{margin-bottom:4px}
+
+  .wh_back{text-align:center;margin-top:22px;font-size:13px}
+  .wh_back a{color:#8b7b6b;text-decoration:none;margin:0 10px}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>任务二 · <b>手势卡片：左右滑动切换内容</b></h1>
+    <p>中华美食卡片 4 道菜 · 左右滑动切换 · 阈值 40px · 0.3s 过渡 · 300ms 冷却</p>
+    <div class="wh_links">
+      <a href="mobile-touch.html">任务一</a>
+      <a href="mobile-zoom.html">任务三</a>
+      <a href="mobile-sensor.html">任务四</a>
+      <a href="index.html">首页</a>
+    </div>
+  </div>
+
+  <div class="wh_deck" id="whDeck">
+    <div class="wh_card" id="whCard">
+      <div class="wh_grad" id="whGrad"></div>
+      <img id="whImg" src="img/food/food-1.jpg" alt="美食卡片图片">
+      <div class="wh_mask"></div>
+      <div class="wh_info">
+        <span class="wh_badge" id="whBadge">01 · 硬菜</span>
+        <h2 id="whName">芝士排骨锅</h2>
+        <p id="whDesc">炖到脱骨的肋排卧在红汤里，四周铺满马苏里拉芝士碎，夹起一块能拉出长长的丝。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wh_bar">
+    <span class="wh_idx">第 <b id="whIdx">1</b>/4 张</span>
+    <span class="wh_dots" id="whDots"><i class="wh_on"></i><i></i><i></i><i></i></span>
+  </div>
+
+  <div class="wh_meter">
+    <span>本次横向位移 dx：<b id="whDxShow">0</b> px（阈值 40）</span>
+    <span id="whLockShow">冷却：空闲</span>
+  </div>
+
+  <div class="wh_toast" id="whToast"></div>
+
+  <div class="wh_sec">
+    <h3>三条验收标准怎么做到</h3>
+    <ul>
+      <li><b>① 短距离误触不切换</b>：只有 touchend 时计算的横向位移绝对值 <code>≥ 40px</code> 才切换，轻点抖动会被忽略。</li>
+      <li><b>② 快速连续滑动不跳两张</b>：切换后进入 <code>300ms</code> 冷却（<code>wh_locked</code>），冷却期内的 touchend 直接 return。</li>
+      <li><b>③ 拖动时页面不跟着上下滚</b>：卡片容器设置 <code>touch-action: pan-y</code>，浏览器只接管纵向滚动，横向手势交给我们处理。</li>
+    </ul>
+  </div>
+
+  <div class="wh_sec">
+    <h3>怎么操作</h3>
+    <p>在卡片上<b>左滑</b>切到下一道，<b>右滑</b>切回上一道；到第一张再右滑、最后一张再左滑都会给出提示。</p>
+    <p>桌面预览可用键盘 <code>→</code> 看下一张、<code>←</code> 看上一张（方便在电脑上验收）。</p>
+    <p>继续往下滚动可以看到这段说明文字——说明卡片区域并没有把整页的纵向滚动锁死。</p>
+    <p style="height:240px;color:#b9a894">（这是一段留白，用来验证上下滚动仍然正常。）</p>
+  </div>
+
+  <div class="wh_back">
+    <a href="mobile-touch.html">← 任务一</a>
+    <a href="mobile-zoom.html">任务三 →</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: 任务二手势卡片逻辑 - 监听 touchstart / touchend，用 changedTouches[0]
+   *                 计算横向位移，绝对值达到 40px 阈值才切换；左滑下一张、右滑上一张，
+   *                 边界提示；切换时给卡片加 0.3s 位移淡出淡入过渡，并用 300ms 冷却
+   *                 防止快速连滑跳两张。所有变量以 wh_ 开头。
+   */
+
+  /** 4 道美食数据：菜名、简介、分类标签、渐变类名、图片 */
+  var wh_dishes = [
+    {
+      name: "芝士排骨锅",
+      desc: "炖到脱骨的肋排卧在红汤里，四周铺满马苏里拉芝士碎，夹起一块能拉出长长的丝。",
+      tag: "01 · 硬菜",
+      grad: "wh_g1",
+      img: "img/food/food-1.jpg"
+    },
+    {
+      name: "蜜汁烤翅玉米",
+      desc: "鸡翅刷满蜜汁烤到焦糖色，外皮微脆内里多汁，配一段甜糯玉米刚刚好。",
+      tag: "02 · 烧烤",
+      grad: "wh_g2",
+      img: "img/food/food-2.jpg"
+    },
+    {
+      name: "爆浆芝士披萨",
+      desc: "厚厚一层芝士盖住整张饼底，撒上辣椒碎和香草，趁热铲起一块就是长长的拉丝。",
+      tag: "03 · 主食",
+      grad: "wh_g3",
+      img: "img/food/food-3.jpg"
+    },
+    {
+      name: "柠檬抹茶蛋糕",
+      desc: "柠檬奶油裹着抹茶卷心，顶上点缀糖渍柠檬片，酸甜里带一点清苦，收尾正好。",
+      tag: "04 · 甜品",
+      grad: "wh_g4",
+      img: "img/food/food-4.jpg"
+    }
+  ];
+
+  /** 当前显示第几张（从 0 开始） */
+  var wh_index = 0;
+  /** touchstart 记录的起点坐标 */
+  var wh_startX = 0;
+  var wh_startY = 0;
+  /** 是否真的按下了（用于忽略非触摸来源） */
+  var wh_pressed = false;
+  /** 冷却锁：切换后 300ms 内不再响应，防止一次连滑跳两张 */
+  var wh_locked = false;
+  /** 冷却定时器 */
+  var wh_lockTimer = null;
+  /** 阈值：横向位移达到 40px 才切换 */
+  var wh_threshold = 40;
+
+  /** 常用 DOM */
+  var wh_cardEl = document.getElementById("whCard");
+  var wh_gradEl = document.getElementById("whGrad");
+  var wh_imgEl = document.getElementById("whImg");
+  var wh_nameEl = document.getElementById("whName");
+  var wh_descEl = document.getElementById("whDesc");
+  var wh_tagEl = document.getElementById("whBadge");
+  var wh_idxEl = document.getElementById("whIdx");
+  var wh_dotsEl = document.getElementById("whDots");
+  var wh_toastEl = document.getElementById("whToast");
+  var wh_dxEl = document.getElementById("whDxShow");
+  var wh_lockEl = document.getElementById("whLockShow");
+
+  /**
+   * 功能: wh_paint
+   * 简介: 把第 n 道菜的内容画到卡片上：替换渐变类名、图片、标签、菜名、简介，
+   *       并同步底部"第 N/4 张"与圆点指示器。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_paint(wh_n) {
+    var wh_dish = wh_dishes[wh_n];
+    wh_gradEl.className = "wh_grad " + wh_dish.grad;
+    wh_imgEl.src = wh_dish.img;
+    wh_imgEl.alt = wh_dish.name;
+    wh_tagEl.textContent = wh_dish.tag;
+    wh_nameEl.textContent = wh_dish.name;
+    wh_descEl.textContent = wh_dish.desc;
+    wh_idxEl.textContent = wh_n + 1;
+
+    var wh_dots = wh_dotsEl.querySelectorAll("i");
+    for (var wh_i = 0; wh_i < wh_dots.length; wh_i++) {
+      wh_dots[wh_i].className = (wh_i === wh_n) ? "wh_on" : "";
+    }
+  }
+
+  /**
+   * 功能: wh_toast
+   * 简介: 在屏幕中央短暂显示一条提示（用于"已经是第一张/最后一张"），
+   *       1.2 秒后自动淡出。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_toast(wh_text) {
+    wh_toastEl.textContent = wh_text;
+    wh_toastEl.classList.add("wh_show");
+    clearTimeout(wh_toastEl.wh_timer);
+    wh_toastEl.wh_timer = setTimeout(function () {
+      wh_toastEl.classList.remove("wh_show");
+    }, 1200);
+  }
+
+  /**
+   * 功能: wh_lock
+   * 简介: 加 300ms 冷却锁：锁住期间忽略新的切换请求，并更新冷却状态文字；
+   *       300ms 后自动解锁。这是"快速连续滑动不会跳两张"的关键。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_lock() {
+    wh_locked = true;
+    wh_lockEl.textContent = "冷却：锁定中";
+    clearTimeout(wh_lockTimer);
+    wh_lockTimer = setTimeout(function () {
+      wh_locked = false;
+      wh_lockEl.textContent = "冷却：空闲";
+    }, 300);
+  }
+
+  /**
+   * 功能: wh_switchTo
+   * 简介: 切换到第 wh_next 张并播放 0.3s 过渡：先按方向把卡片推出（左滑向左、
+   *       右滑向右），过渡结束后换内容、再从反方向拉回，形成"滑出滑入"的效果。
+   *       同时更新索引与指示器，并调用 wh_lock 加冷却。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_switchTo(wh_next, wh_direction) {
+    var wh_outClass = wh_direction === "left" ? "wh_out_left" : "wh_out_right";
+    var wh_inClass = wh_direction === "left" ? "wh_in_right" : "wh_in_left";
+
+    wh_cardEl.classList.add(wh_outClass);
+
+    setTimeout(function () {
+      wh_index = wh_next;
+      wh_paint(wh_index);
+      wh_cardEl.classList.remove(wh_outClass);
+      wh_cardEl.classList.add(wh_inClass);
+
+      // 下一帧移除进场类，让 transition 把它拉回原位
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          wh_cardEl.classList.remove(wh_inClass);
+        });
+      });
+    }, 300);
+
+    wh_lock();
+  }
+
+  /**
+   * 功能: wh_doSwitch
+   * 简介: 根据滑动方向执行切换：左滑看下一张、右滑看上一张。
+   *       到边界时不切换，只给出"已经是第一张/最后一张"提示。
+   *       冷却期内直接忽略，避免一次快速连滑跳两张。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_doSwitch(wh_direction) {
+    if (wh_locked) return;
+
+    if (wh_direction === "left") {
+      if (wh_index >= wh_dishes.length - 1) {
+        wh_toast("已经是最后一张");
+        return;
+      }
+      wh_switchTo(wh_index + 1, "left");
+    } else {
+      if (wh_index <= 0) {
+        wh_toast("已经是第一张");
+        return;
+      }
+      wh_switchTo(wh_index - 1, "right");
+    }
+  }
+
+  /**
+   * 功能: wh_onTouchStart
+   * 简介: 记录起点：保存第一根手指的 clientX / clientY，并标记本轮按下有效。
+   *       这里用 touches[0]，因为手势开始时还没有"变化的触点"。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchStart(wh_e) {
+    if (!wh_e.touches.length) return;
+    wh_startX = wh_e.touches[0].clientX;
+    wh_startY = wh_e.touches[0].clientY;
+    wh_pressed = true;
+    wh_dxEl.textContent = "0";
+  }
+
+  /**
+   * 功能: wh_onTouchMove
+   * 简介: 手指移动时只做实时位移展示（不直接切换），让用户能看到 dx 与 40px 阈值的关系；
+   *       不调用 preventDefault，纵向滚动交给页面的 touch-action: pan-y 处理。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchMove(wh_e) {
+    if (!wh_pressed || !wh_e.touches.length) return;
+    var wh_dx = wh_e.touches[0].clientX - wh_startX;
+    wh_dxEl.textContent = Math.round(wh_dx);
+  }
+
+  /**
+   * 功能: wh_onTouchEnd
+   * 简介: 抬手时用 changedTouches[0] 计算最终横向位移，与原起点比较：
+   *       |dx| ≥ 40px 且以横向为主时才判定为滑动（dx<0 左滑、dx>0 右滑），
+   *       否则视为误触不切换。纵向位移更大时也不算左右滑。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onTouchEnd(wh_e) {
+    if (!wh_pressed) return;
+    wh_pressed = false;
+
+    if (!wh_e.changedTouches.length) return;
+    var wh_endX = wh_e.changedTouches[0].clientX;
+    var wh_endY = wh_e.changedTouches[0].clientY;
+    var wh_dx = wh_endX - wh_startX;
+    var wh_dy = wh_endY - wh_startY;
+
+    wh_dxEl.textContent = Math.round(wh_dx);
+
+    // 阈值判定：横向位移足够，且横向占主导
+    if (Math.abs(wh_dx) < wh_threshold || Math.abs(wh_dx) <= Math.abs(wh_dy)) {
+      return;
+    }
+
+    wh_doSwitch(wh_dx < 0 ? "left" : "right");
+  }
+
+  /**
+   * 功能: wh_bind
+   * 简介: 把 touchstart / touchmove / touchend 绑定到卡片容器；另外绑定键盘 ← →
+   *       作为桌面预览手段（与触摸走同一套 wh_doSwitch 逻辑）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_bind() {
+    var wh_deckEl = document.getElementById("whDeck");
+    wh_deckEl.addEventListener("touchstart", wh_onTouchStart, { passive: true });
+    wh_deckEl.addEventListener("touchmove", wh_onTouchMove, { passive: true });
+    wh_deckEl.addEventListener("touchend", wh_onTouchEnd, { passive: true });
+
+    document.addEventListener("keydown", function (wh_e) {
+      // → 看下一张（等价于左滑），← 看上一张（等价于右滑）
+      if (wh_e.key === "ArrowRight") wh_doSwitch("left");
+      if (wh_e.key === "ArrowLeft") wh_doSwitch("right");
+    });
+  }
+
+  wh_paint(0);
+  wh_bind();
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "authors": [
+    {
+      "id": 1,
+      "name": "曹操",
+      "dynasty": "汉",
+      "intro": "东汉末年政治家、军事家、文学家，建安文学的开创者。"
+    },
+    {
+      "id": 2,
+      "name": "王驾",
+      "dynasty": "唐",
+      "intro": "唐代诗人，字大用，河中（今山西永济）人，以写景小诗见长。"
+    },
+    {
+      "id": 3,
+      "name": "杜甫",
+      "dynasty": "唐",
+      "intro": "唐代伟大的现实主义诗人，被后人尊为“诗圣”，诗作被称为“诗史”。"
+    },
+    {
+      "id": 4,
+      "name": "秦观",
+      "dynasty": "宋",
+      "intro": "北宋词人，字少游，苏门四学士之一，婉约派代表词人。"
+    },
+    {
+      "id": 5,
+      "name": "苏轼",
+      "dynasty": "宋",
+      "intro": "北宋文学家、书画家，号东坡居士，豪放派代表，唐宋八大家之一。"
+    }
+  ],
+  "poems": [
+  {
+    "content": "你看是不是变了！",
+    "pic": "https://gitee.com/wangyao_jsj/project2024_01/raw/master/img/6.jpg",
+    "title": "短歌行",
+    "author": "曹操"
+  },
+  {
+    "content": "雨前初见花间蕊，雨后全无叶底花。",
+    "pic": "https://gitee.com/wangyao_jsj/project2024_01/raw/master/img/2.jpg",
+    "title": "雨晴",
+    "author": "王驾"
+  },
+  {
+    "content": "花近高楼伤客心，万方多难此登临。",
+    "pic": "https://gitee.com/wangyao_jsj/project2024_01/raw/master/img/3.jpg",
+    "title": "脊楼",
+    "author": "杜甫"
+  },
+  {
+    "content": "纤云弄巧，飞星传恨，银汉迢迢暗度。",
+    "pic": "https://gitee.com/wangyao_jsj/project2024_01/raw/master/img/4.jpg",
+    "title": "鹊桥仙·纤云弄巧",
+    "author": "秦观"
+  },
+  {
+    "content": "横看成岭侧成峰，远近高低各不同。",
+    "pic": "img/poems/tixilinbi.jpg",
+    "title": "题西林壁",
+    "author": "苏轼"
+  },
+  {
+    "content": "会当凌绝顶，一览众山小。",
+    "pic": "img/poems/wangyue.jpg",
+    "title": "望岳",
+    "author": "杜甫"
+  }
+]}

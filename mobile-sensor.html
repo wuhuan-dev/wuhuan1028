@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-16 14:08
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: 任务四 · 摇一摇彩蛋（★★，选项 A） - 监听 devicemotion，用
+                  accelerationIncludingGravity 计算三轴合成加速度，超过阈值（约 18）
+                  判定为摇动，随机抽出一道今日菜谱并播放弹出动画；触发后进入 1.5 秒冷却，
+                  防止一次摇动重复触发；检测不到传感器或没有数据时提示"当前设备不支持，
+                  请用手机打开"，并提供"点我抽一次"按钮作为降级方案。
+                  作者：吴欢　学号：24001011028。所有变量以 wh_ 开头。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任务四 · 摇一摇彩蛋：抽今日菜谱</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+    background:radial-gradient(circle at 50% 0%,#2a1d3d,#12101a 60%);color:#f2ecff;
+    line-height:1.8;min-height:100vh}
+  .wh_wrap{max-width:520px;margin:0 auto;padding:20px 16px 50px}
+
+  .wh_head{text-align:center;padding:6px 0 16px}
+  .wh_head h1{font-size:19px;letter-spacing:1px}
+  .wh_head h1 b{color:#c084fc}
+  .wh_head .wh_author{font-size:12.5px;color:#9b8fb5;margin-top:6px}
+  .wh_head .wh_author b{color:#e9d5ff}
+  .wh_head .wh_links{margin-top:8px;font-size:12.5px}
+  .wh_head .wh_links a{color:#c084fc;text-decoration:none;margin:0 8px}
+
+  /* 摇一摇提示 */
+  .wh_guide{text-align:center;padding:18px 12px 6px}
+  .wh_guide .wh_phone{font-size:40px;display:inline-block;animation:wh_shake 2.2s ease-in-out infinite}
+  @keyframes wh_shake{
+    0%,60%,100%{transform:rotate(0)}
+    65%{transform:rotate(-16deg)}
+    70%{transform:rotate(16deg)}
+    75%{transform:rotate(-13deg)}
+    80%{transform:rotate(13deg)}
+    85%{transform:rotate(-7deg)}
+    90%{transform:rotate(7deg)}
+  }
+  .wh_guide h2{font-size:16px;color:#e9d5ff;margin-top:6px}
+  .wh_guide p{font-size:12.5px;color:#9b8fb5;margin-top:4px}
+
+  /* 结果卡片 */
+  .wh_result{margin-top:16px;border-radius:18px;overflow:hidden;
+    background:rgba(255,255,255,.06);border:1px solid rgba(192,132,252,.28);
+    min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:22px 20px;text-align:center;transition:transform .3s}
+  .wh_result.wh_pop{animation:wh_pop .55s cubic-bezier(.2,1.5,.4,1)}
+  @keyframes wh_pop{
+    0%{transform:scale(.75);opacity:0}
+    60%{transform:scale(1.06);opacity:1}
+    100%{transform:scale(1);opacity:1}
+  }
+  .wh_result .wh_ph{font-size:13px;color:#9b8fb5}
+  .wh_result img{width:100%;max-width:300px;height:170px;object-fit:cover;border-radius:12px;display:none;margin-bottom:12px}
+  .wh_result h3{font-size:21px;color:#fff;letter-spacing:1px;margin-bottom:6px;display:none}
+  .wh_result p{font-size:13px;color:#cbb8e8;display:none}
+  .wh_result.wh_has img,.wh_result.wh_has h3,.wh_result.wh_has p{display:block}
+  .wh_result.wh_has .wh_ph{display:none}
+
+  /* 状态栏 */
+  .wh_status{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .wh_status div{flex:1 1 110px;background:rgba(255,255,255,.05);border:1px solid rgba(192,132,252,.18);
+    border-radius:10px;padding:8px 11px;font-size:11.5px;color:#9b8fb5}
+  .wh_status div b{display:block;font-size:15px;color:#c084fc;font-family:Consolas,monospace}
+
+  /* 按钮 */
+  .wh_btns{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .wh_btn{border:none;cursor:pointer;border-radius:999px;padding:11px 22px;font-size:13.5px;
+    font-weight:bold;letter-spacing:.5px;transition:transform .15s,opacity .2s}
+  .wh_btn:active{transform:scale(.96)}
+  .wh_btn_main{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff}
+  .wh_btn_fall{background:rgba(255,255,255,.1);color:#e9d5ff;border:1px solid rgba(192,132,252,.4)}
+  .wh_btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* 不支持提示 */
+  .wh_alert{margin-top:14px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.4);
+    color:#fca5a5;border-radius:10px;padding:10px 14px;font-size:12.5px;display:none}
+  .wh_alert.wh_show{display:block}
+
+  .wh_sec{background:rgba(255,255,255,.04);border:1px solid rgba(192,132,252,.18);
+    border-radius:13px;padding:16px 18px;margin-top:18px}
+  .wh_sec h3{font-size:14px;color:#c084fc;margin-bottom:8px}
+  .wh_sec p{font-size:13px;color:#cbb8e8;margin-bottom:7px}
+  .wh_sec p:last-child{margin-bottom:0}
+  .wh_sec code{background:rgba(192,132,252,.14);color:#e9d5ff;border-radius:4px;padding:1px 6px;
+    font-family:Consolas,monospace;font-size:12px}
+  .wh_sec b{color:#f2ecff}
+
+  .wh_back{text-align:center;margin-top:20px;font-size:13px}
+  .wh_back a{color:#9b8fb5;text-decoration:none;margin:0 10px}
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>任务四 · <b>摇一摇彩蛋：抽今日菜谱</b></h1>
+    <div class="wh_author">姓名：<b>吴欢</b>　学号：<b>24001011028</b></div>
+    <div class="wh_links">
+      <a href="mobile-touch.html">任务一</a>
+      <a href="mobile-gesture.html">任务二</a>
+      <a href="mobile-zoom.html">任务三</a>
+      <a href="index.html">首页</a>
+    </div>
+  </div>
+
+  <div class="wh_guide">
+    <span class="wh_phone">📱</span>
+    <h2>摇一摇手机，抽今日菜谱</h2>
+    <p>摇动幅度大一点，超过阈值才会触发；每次触发后需要等 1.5 秒冷却</p>
+  </div>
+
+  <div class="wh_result" id="whResult">
+    <div class="wh_ph">还没有结果，先摇一摇（或点下方按钮）</div>
+    <img id="whImg" src="" alt="抽中的菜">
+    <h3 id="whName"></h3>
+    <p id="whDesc"></p>
+  </div>
+
+  <div class="wh_status">
+    <div>传感器<b id="whSensorState">未开启</b></div>
+    <div>当前合成加速度<b id="whMagnitude">-</b></div>
+    <div>冷却<b id="whCoolState">就绪</b></div>
+    <div>累计触发<b id="whHitCount">0</b></div>
+  </div>
+
+  <div class="wh_btns">
+    <button class="wh_btn wh_btn_main" id="whEnable">开启体感摇一摇</button>
+    <button class="wh_btn wh_btn_fall" id="whPickBtn">点我抽一次（降级）</button>
+  </div>
+
+  <div class="wh_alert" id="whAlert">
+    当前设备不支持，请用手机打开。你的浏览器/设备没有提供 devicemotion 数据，
+    可以点上方"点我抽一次（降级）"按钮继续体验。
+  </div>
+
+  <div class="wh_sec">
+    <h3>为什么必须做降级（说明）</h3>
+    <p>摇一摇依赖 <code>devicemotion</code> 事件和加速度传感器，这份能力<b>并不在所有设备上都存在</b>：
+      桌面浏览器、部分平板、老旧机型、以及用户拒绝传感器权限时，页面都拿不到加速度数据。
+      如果不做降级，这些用户打开页面后只会看到一句"摇一摇"却永远摇不出结果，功能等于完全失效。</p>
+    <p>另外 iOS 13+ 要求 <code>DeviceMotionEvent.requestPermission()</code> 必须由用户手势触发，
+      所以"开启体感摇一摇"按钮既承担授权职责，也是唯一能安全启动监听的时机。</p>
+    <p>因此这里的降级策略是：监听不到数据 → 明确提示"当前设备不支持，请用手机打开"（不报错、不白屏）→
+      同时保留一个"点我抽一次"按钮，让抽菜谱这个<b>核心功能在任何设备上都能完成</b>。
+      降级不是"功能缩水"，而是把"必须依赖硬件"的部分换成一个所有人都能用的入口。</p>
+  </div>
+
+  <div class="wh_sec">
+    <h3>accelerationIncludingGravity 与 acceleration 的区别（验收 ④）</h3>
+    <p><code>accelerationIncludingGravity</code>：<b>含重力</b>。手机静止平放时它的值约为
+      <code>{x:0, y:0, z:9.8}</code>，因为重力一直在把设备往地面拉。摇动时它会在 9.8 附近大幅波动，
+      所以本项目用它算合成加速度，静止约 9.8、摇动时明显超过 18。</p>
+    <p><code>acceleration</code>：<b>已剔除重力</b>，只反映设备自身的线性加速度。静止时应接近
+      <code>{0,0,0}</code>，但由于很多设备没有陀螺仪做补偿，这个值可能直接是 <code>null</code> 或不准。</p>
+    <p>一句话：<b>含重力的值永远有约 9.8 的底数，适合判断"摇动幅度"；不含重力的值适合做位移/速度积分，但可用性差。</b></p>
+  </div>
+
+  <div class="wh_back">
+    <a href="mobile-zoom.html">← 任务三</a>
+    <a href="index.html">返回首页</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: 任务四摇一摇逻辑 - 开启后监听 devicemotion，用 accelerationIncludingGravity
+   *                 计算三轴合成加速度，超过阈值 18 判定为摇动并进入 1.5 秒冷却；
+   *                 随机抽菜并播放弹出动画；无传感器数据时提示不支持并启用按钮降级。
+   *                 作者：吴欢　学号：24001011028。所有变量以 wh_ 开头。
+   */
+
+  /** 今日菜谱池（与任务二同一批美食） */
+  var wh_foods = [
+    { name: "芝士排骨锅", desc: "炖到脱骨的肋排裹满马苏里拉，夹起来能拉丝。", img: "img/food/food-1.jpg" },
+    { name: "蜜汁烤翅玉米", desc: "蜜汁烤翅焦糖色外皮，配一段甜糯玉米。", img: "img/food/food-2.jpg" },
+    { name: "爆浆芝士披萨", desc: "厚芝士配辣椒碎，趁热铲一块就是拉丝。", img: "img/food/food-3.jpg" },
+    { name: "柠檬抹茶蛋糕", desc: "柠檬奶油裹抹茶卷，酸甜里带一点清苦。", img: "img/food/food-4.jpg" }
+  ];
+
+  /** 摇动阈值：合成加速度超过它才判定为摇动（静止时约 9.8） */
+  var wh_threshold = 18;
+  /** 冷却时长：一次摇动只触发一次 */
+  var wh_cooldownMs = 1500;
+  /** 是否处于冷却中 */
+  var wh_cooling = false;
+  /** 是否已经成功拿到过传感器数据 */
+  var wh_receiving = false;
+  /** 累计触发次数 */
+  var wh_hitCount = 0;
+  /** 传感器启动后的"无数据"检测定时器 */
+  var wh_watchTimer = null;
+  /** 上一次抽中的菜索引，避免连续抽到同一道 */
+  var wh_lastIndex = -1;
+
+  /** DOM */
+  var wh_resultEl = document.getElementById("whResult");
+  var wh_sensorEl = document.getElementById("whSensorState");
+  var wh_magEl = document.getElementById("whMagnitude");
+  var wh_coolEl = document.getElementById("whCoolState");
+  var wh_hitEl = document.getElementById("whHitCount");
+  var wh_alertEl = document.getElementById("whAlert");
+  var wh_enableBtn = document.getElementById("whEnable");
+
+  /**
+   * 功能: wh_pickFood
+   * 简介: 随机抽一道菜：在 0~3 中取随机索引，若与上次相同则顺延一位，
+   *       保证连续两次不会抽到同一道菜，体验更好。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_pickFood() {
+    var wh_idx = Math.floor(Math.random() * wh_foods.length);
+    if (wh_idx === wh_lastIndex && wh_foods.length > 1) {
+      wh_idx = (wh_idx + 1) % wh_foods.length;
+    }
+    wh_lastIndex = wh_idx;
+    return wh_foods[wh_idx];
+  }
+
+  /**
+   * 功能: wh_showResult
+   * 简介: 把抽中的菜写进结果卡片（图片、菜名、简介），先移除 wh_has 与动画类，
+   *       强制浏览器重排后再加回来，让弹出动画每次都能重新播放。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_showResult() {
+    var wh_food = wh_pickFood();
+    document.getElementById("whImg").src = wh_food.img;
+    document.getElementById("whImg").alt = wh_food.name;
+    document.getElementById("whName").textContent = wh_food.name;
+    document.getElementById("whDesc").textContent = wh_food.desc;
+
+    wh_resultEl.classList.remove("wh_pop");
+    wh_resultEl.classList.remove("wh_has");
+    // 读取一次 offsetWidth 触发重排，保证动画可以重复播放
+    void wh_resultEl.offsetWidth;
+    wh_resultEl.classList.add("wh_has");
+    wh_resultEl.classList.add("wh_pop");
+
+    wh_hitCount++;
+    wh_hitEl.textContent = wh_hitCount;
+  }
+
+  /**
+   * 功能: wh_startCooldown
+   * 简介: 触发后进入 1.5 秒冷却：冷却期内的摇动全部忽略，
+   *       并在状态栏倒计时显示，避免一次连续摇动抽出好几道菜。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_startCooldown() {
+    wh_cooling = true;
+    wh_coolEl.textContent = "冷却 1.5s";
+    setTimeout(function () {
+      wh_cooling = false;
+      wh_coolEl.textContent = "就绪";
+    }, wh_cooldownMs);
+  }
+
+  /**
+   * 功能: wh_triggerShake
+   * 简介: 摇动生效的统一入口：冷却中直接返回；否则抽菜、播放动画并开始冷却。
+   *       体感触发与降级按钮都走这里，保证两条路径行为一致。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_triggerShake() {
+    if (wh_cooling) return;
+    wh_showResult();
+    wh_startCooldown();
+  }
+
+  /**
+   * 功能: wh_onMotion
+   * 简介: devicemotion 回调。取 accelerationIncludingGravity（含重力，静止约 9.8），
+   *       用三轴平方和的平方根算合成加速度，实时显示；超过 18 且不在冷却中即触发抽菜。
+   *       该值为 null（设备无传感器）时转去走降级提示。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onMotion(wh_e) {
+    var wh_acc = wh_e.accelerationIncludingGravity;
+    if (!wh_acc || wh_acc.x === null || wh_acc.y === null || wh_acc.z === null) {
+      wh_showNotSupported();
+      return;
+    }
+
+    wh_receiving = true;
+    wh_sensorEl.textContent = "工作中";
+    wh_alertEl.classList.remove("wh_show");
+
+    var wh_magnitude = Math.sqrt(
+      wh_acc.x * wh_acc.x + wh_acc.y * wh_acc.y + wh_acc.z * wh_acc.z
+    );
+    wh_magEl.textContent = wh_magnitude.toFixed(1);
+
+    if (wh_magnitude > wh_threshold) {
+      wh_triggerShake();
+    }
+  }
+
+  /**
+   * 功能: wh_showNotSupported
+   * 简介: 降级提示：状态栏标"不支持"、显示红色提示条，并把主按钮禁用，
+   *       只保留"点我抽一次（降级）"可用；不抛异常、不白屏。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_showNotSupported() {
+    wh_sensorEl.textContent = "不支持";
+    wh_alertEl.classList.add("wh_show");
+    wh_enableBtn.disabled = true;
+    wh_enableBtn.textContent = "体感不可用";
+    window.removeEventListener("devicemotion", wh_onMotion);
+  }
+
+  /**
+   * 功能: wh_startSensor
+   * 简介: 启动体感：先判断浏览器是否支持 DeviceMotionEvent；iOS 13+ 需要
+   *       requestPermission() 且必须由用户手势触发，所以在点击事件里申请授权。
+   *       授权通过后监听 devicemotion，并启动 3 秒看门狗——3 秒内没收到任何有效数据
+   *       就判定为设备不支持，转降级提示。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_startSensor() {
+    if (typeof DeviceMotionEvent === "undefined") {
+      wh_showNotSupported();
+      return;
+    }
+
+    wh_sensorEl.textContent = "申请中";
+
+    // iOS 13+ 权限申请（必须在用户手势里调用）
+    var wh_request = null;
+    if (typeof DeviceMotionEvent.requestPermission === "function") {
+      wh_request = DeviceMotionEvent.requestPermission();
+    } else {
+      wh_request = Promise.resolve("granted");
+    }
+
+    wh_request
+      .then(function (wh_state) {
+        if (wh_state !== "granted") {
+          wh_showNotSupported();
+          return;
+        }
+        window.addEventListener("devicemotion", wh_onMotion, { passive: true });
+        wh_sensorEl.textContent = "监听中";
+
+        // 3 秒看门狗：一直没有有效数据 → 判为不支持
+        clearTimeout(wh_watchTimer);
+        wh_watchTimer = setTimeout(function () {
+          if (!wh_receiving) {
+            wh_showNotSupported();
+          }
+        }, 3000);
+      })
+      .catch(function () {
+        wh_showNotSupported();
+      });
+  }
+
+  /**
+   * 功能: wh_bind
+   * 简介: 绑定"开启体感摇一摇"（触发 iOS 权限申请）与"点我抽一次"（降级入口）；
+   *       桌面环境没有传感器时主按钮不会被强制禁用，交给 3 秒看门狗判断，
+   *       避免误判导致用户无法点击。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:08
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_bind() {
+    wh_enableBtn.addEventListener("click", wh_startSensor);
+    document.getElementById("whPickBtn").addEventListener("click", wh_triggerShake);
+  }
+
+  wh_bind();
+</script>
+</body>
+</html>

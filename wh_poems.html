@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-12 13:46
+  使用模型: GLM-5.3-Flash
+  功能名称及简介: 任务二 · 数据我来定 - 页面用 Promise.all 并发请求本地数据服务器
+                  （http://localhost:3004）的两个接口：/api/poems 取诗歌的
+                  pic / title / content / author，/api/authors 取作者列表（姓名/朝代/简介），
+                  按 author 关联后以"上图下文"卡片渲染；远程图片经 /api/img 代理加载，
+                  本地图片直接用相对路径。
+                  数据服务器为 db/server.js，端口 3004，启动命令：node db/server.js
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>诗歌展示 · 上图下文</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:linear-gradient(160deg,#f5f1e8,#e8f0e4);color:#2d2a24;line-height:1.8;min-height:100vh}
+  .wh_wrap{max-width:1000px;margin:0 auto;padding:34px 20px 60px}
+
+  .wh_head{background:linear-gradient(135deg,#3f4c3b,#6b7a5e);border-radius:16px;padding:28px 32px;color:#fff;margin-bottom:24px;box-shadow:0 10px 24px rgba(63,76,59,.25)}
+  .wh_head h1{font-size:24px;letter-spacing:2px;margin-bottom:8px}
+  .wh_head p{font-size:13.5px;color:#e3e9dc}
+  .wh_head code{background:rgba(255,255,255,.16);border-radius:5px;padding:1px 7px;font-family:Consolas,monospace;font-size:12.5px}
+  .wh_head .wh_links{margin-top:10px;font-size:13.5px}
+  .wh_head .wh_links a{color:#f2d99a;text-decoration:none;margin-right:16px}
+
+  .wh_cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+  .wh_card{background:#fff;border:1px solid #e5e0d3;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(63,76,59,.12);transition:transform .2s ease,box-shadow .2s ease}
+  .wh_card:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(63,76,59,.2)}
+
+  /* 上图：卡片上半部分为图片 */
+  .wh_pic{height:200px;background:#eef0e6}
+  .wh_pic img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* 下文：卡片下半部分为标题与内容 */
+  .wh_body{padding:16px 18px 18px}
+  .wh_title{font-size:17px;font-weight:bold;color:#3f4c3b;margin-bottom:6px;padding-left:9px;border-left:4px solid #c9a86a}
+  .wh_content{font-size:13.5px;color:#5c554b}
+  .wh_meta{margin-top:10px;padding-top:8px;border-top:1px dashed #e5e0d3;font-size:12.5px;color:#8a7f6b;display:flex;align-items:center;gap:6px}
+  .wh_meta .wh_badge{background:#eef2e6;color:#4f6047;border-radius:999px;padding:1px 9px;font-size:11.5px}
+  .wh_stat{margin-top:12px;font-size:13px;color:#e3e9dc}
+  .wh_stat b{color:#f2d99a}
+
+  .wh_tip{grid-column:1/-1;text-align:center;font-size:14px;color:#8f887c;padding:40px 0;background:#fff;border:1.5px dashed #c9bfae;border-radius:14px}
+
+  .wh_back{text-align:center;margin-top:26px;font-size:14px}
+  .wh_back a{color:#3f4c3b;text-decoration:none;margin:0 10px}
+
+  @media (max-width:680px){
+    .wh_cards{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <h1>诗歌展示 · <b>上图下文</b></h1>
+    <p>数据来源：本地数据服务器 <code>db/server.js</code>（端口 3004）读取 <code>db/db.json</code>，两个接口 <code>/api/poems</code> 与 <code>/api/authors</code> 由页面用 <code>Promise.all</code> 并发取回。启动命令：<code>node db/server.js</code></p>
+    <div class="wh_links">
+      <a href="index.html">返回首页</a>
+      <a href="http://localhost:3004/api/poems" target="_blank">诗歌接口</a>
+      <a href="http://localhost:3004/api/authors" target="_blank">作者接口</a>
+    </div>
+    <div class="wh_stat" id="whStat">正在并发请求两份数据……</div>
+  </div>
+
+  <div class="wh_cards" id="whCards">
+    <div class="wh_tip">正在从 http://localhost:3004/api/poems 加载数据……（请先运行 node db/server.js）</div>
+  </div>
+
+  <div class="wh_back">
+    <a href="index.html">← 返回课堂实践中心</a>
+  </div>
+</div>
+
+<script>
+  /*
+   * 作者: 吴欢
+   * 建立时间: 2026-11-12 13:46
+   * 使用模型: DeepSeek-V4.1-Flash
+   * 功能名称及简介: 任务二 · 数据我来定 —— 用 Promise.all 并发请求本地 3004 端口的
+   *                 两个接口（/api/poems 诗歌、/api/authors 作者），把诗歌渲染成
+   *                 上图下文卡片，并按 author 字段关联显示朝代与作者简介。
+   */
+
+  /** 诗歌数据接口地址（端口 3004） */
+  var wh_apiUrl = "http://localhost:3004/api/poems";
+  /** 作者列表接口地址（端口 3004） */
+  var wh_authorsUrl = "http://localhost:3004/api/authors";
+  /** 图片代理接口地址：仅远程图片需要经本地 3004 服务器转发 */
+  var wh_imgApiUrl = "http://localhost:3004/api/img?url=";
+
+  /**
+   * 功能: wh_escapeHtml
+   * 简介: 对字符串中的 & < > " ' 做转义，防止数据里的特殊字符破坏页面结构。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-12 13:46
+   * 使用模型: GLM-5.3-Flash
+   */
+  function wh_escapeHtml(wh_str) {
+    return String(wh_str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  /**
+   * 功能: wh_imgUrl
+   * 简介: 统一图片地址。远程图片（http/https 开头）转成本地代理地址
+   *       （http://localhost:3004/api/img?url=编码后的原图地址）以避开图床防盗链；
+   *       本地图片（如 img/poems/xxx.jpg）直接用相对路径，由静态服务加载。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 12:53
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_imgUrl(wh_pic) {
+    if (/^https?:\/\//i.test(wh_pic)) {
+      return wh_imgApiUrl + encodeURIComponent(wh_pic);
+    }
+    return wh_pic;
+  }
+
+  /**
+   * 功能: wh_findAuthor
+   * 简介: 在 authors 数组中按姓名查找作者对象（poems 的 author 字段与 authors 的 name
+   *       关联）；找不到时返回 null。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 12:53
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_findAuthor(wh_authors, wh_name) {
+    for (var wh_i = 0; wh_i < wh_authors.length; wh_i++) {
+      if (wh_authors[wh_i].name === wh_name) {
+        return wh_authors[wh_i];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * 功能: wh_buildCard
+   * 简介: 根据一条 poem 数据（pic / title / content / author）与关联到的作者对象，
+   *       拼接一张"上图下文"卡片的 HTML：上半部分 .wh_pic 放图片，下半部分
+   *       .wh_body 放标题、诗句内容，以及朝代 + 作者（鼠标悬停显示作者简介）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 12:53
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_buildCard(wh_item, wh_authors) {
+    var wh_author = wh_findAuthor(wh_authors, wh_item.author);
+    var wh_meta = wh_author
+      ? '<div class="wh_meta" title="' + wh_escapeHtml(wh_author.intro || "") + '">'
+        + '<span class="wh_badge">' + wh_escapeHtml(wh_author.dynasty) + '</span>'
+        + '<span>' + wh_escapeHtml(wh_author.name) + '</span>'
+        + '</div>'
+      : "";
+
+    return '<div class="wh_card">'
+      + '<div class="wh_pic"><img src="' + wh_escapeHtml(wh_imgUrl(wh_item.pic)) + '" alt="' + wh_escapeHtml(wh_item.title) + '" loading="lazy"></div>'
+      + '<div class="wh_body">'
+      + '<h2 class="wh_title">' + wh_escapeHtml(wh_item.title) + '</h2>'
+      + '<p class="wh_content">' + wh_escapeHtml(wh_item.content) + '</p>'
+      + wh_meta
+      + '</div>'
+      + '</div>';
+  }
+
+  /**
+   * 功能: wh_renderPoems
+   * 简介: 把 poems 数组与 authors 数组一起渲染到 #whCards：逐条生成卡片并关联作者；
+   *       同时在页头 #whStat 显示本次并发取回的诗歌数与作者数。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 12:53
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_renderPoems(wh_poems, wh_authors) {
+    var wh_box = document.getElementById("whCards");
+    var wh_stat = document.getElementById("whStat");
+
+    if (!wh_poems || wh_poems.length === 0) {
+      wh_box.innerHTML = '<div class="wh_tip">db.json 里没有 poems 数据</div>';
+      wh_stat.textContent = "诗歌 0 条 · 作者 0 位";
+      return;
+    }
+
+    wh_box.innerHTML = wh_poems.map(function (wh_item) {
+      return wh_buildCard(wh_item, wh_authors || []);
+    }).join("");
+
+    wh_stat.innerHTML = "Promise.all 并发取回：诗歌 <b>" + wh_poems.length + "</b> 条 · 作者 <b>" + (wh_authors || []).length + "</b> 位";
+  }
+
+  /**
+   * 功能: wh_loadData
+   * 简介: 用 Promise.all 同时发起两次 fetch（/api/poems 与 /api/authors），
+   *       两个请求都成功后再一起渲染，实现"一次并发取回两份数据"；
+   *       任一出错（如服务器未启动）都在页面上给出启动提示。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 12:53
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_loadData() {
+    Promise.all([
+      fetch(wh_apiUrl).then(function (wh_res) { return wh_res.json(); }),
+      fetch(wh_authorsUrl).then(function (wh_res) { return wh_res.json(); })
+    ])
+      .then(function (wh_result) {
+        wh_renderPoems(wh_result[0].data, wh_result[1].data);
+      })
+      .catch(function (wh_err) {
+        document.getElementById("whStat").textContent = "加载失败";
+        document.getElementById("whCards").innerHTML =
+          '<div class="wh_tip">加载失败：' + wh_err.message + '<br>请先在项目目录运行 <b>node db/server.js</b> 启动数据服务器（端口 3004）后刷新本页。</div>';
+      });
+  }
+
+  /**
+   * 功能: wh_initPoemsPage
+   * 简介: 页面加载完成后调用 wh_loadData，并发请求诗歌与作者两个接口并渲染。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 12:53
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_initPoemsPage() {
+    wh_loadData();
+  }
+
+  document.addEventListener("DOMContentLoaded", wh_initPoemsPage);
+</script>
+</body>
+</html>
