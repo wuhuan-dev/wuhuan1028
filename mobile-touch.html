@@ -51,6 +51,8 @@
   .wh_probe.wh_active{border-color:#6ee7ff;background:radial-gradient(circle at 50% 40%,#1f3a4d,#141a25)}
   .wh_probe .wh_hint{text-align:center;color:#5d6d87;font-size:13px;pointer-events:none}
   .wh_probe .wh_hint b{display:block;font-size:16px;color:#7d8ea8;margin-bottom:4px}
+  /* 探针区内部实时轨迹层：铺满探针，不接收事件 */
+  .wh_probe .wh_trace{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2}
   .wh_dot{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;
     background:rgba(110,231,255,.85);box-shadow:0 0 14px rgba(110,231,255,.9);pointer-events:none}
 
@@ -110,7 +112,7 @@
       <div class="wh_op"><b>④ 双指触摸</b>两指同时按下再抬起</div>
       <div class="wh_op"><b>⑤ 长按后抬起</b>按住约 600ms 不动再抬</div>
     </div>
-    <p class="wh_note">提示：桌面浏览器用鼠标不会触发 touch 事件，请开启 DevTools 的设备模式（Ctrl+Shift+M）或直接用手机访问。</p>
+    <p class="wh_note">触屏设备走 touch 事件；桌面浏览器会自动改用 pointer 事件（用鼠标拖动同样能记录手势、绘制轨迹），想看真实的事件名请开启 DevTools 设备模式（Ctrl+Shift+M）或用手机访问。</p>
   </div>
 
   <div class="wh_sec">
@@ -127,6 +129,7 @@
   <div class="wh_sec">
     <h2>3 · 探针区 <span>在这里做 5 种操作</span></h2>
     <div class="wh_probe" id="whProbe">
+      <canvas class="wh_trace" id="whTrace"></canvas>
       <div class="wh_hint"><b>把手指放上来</b>每次操作结束后下方会自动生成一条手势记录</div>
     </div>
     <div style="margin-top:12px">
@@ -217,6 +220,9 @@
   /** 轨迹画布与其上下文 */
   var wh_canvas = document.getElementById("whCanvas");
   var wh_ctx = wh_canvas.getContext("2d");
+  /** 探针区内的实时轨迹层 */
+  var wh_trace = document.getElementById("whTrace");
+  var wh_traceCtx = wh_trace.getContext("2d");
 
   /** 事件流水数组：每项 { name, t, touches, changed, x, y } */
   var wh_events = [];
@@ -228,6 +234,65 @@
   var wh_startAt = Date.now();
   /** 轨迹配色轮换 */
   var wh_colors = ["#6ee7ff", "#7ee787", "#ffd580", "#ff9d94", "#d2a8ff", "#79c0ff"];
+
+  /**
+   * 功能: wh_syncTraceSize
+   * 简介: 按探针区当前尺寸同步实时轨迹 canvas 的像素尺寸（乘以 devicePixelRatio），
+   *       并把绘制坐标系整体缩放到 CSS 像素，保证高分屏上线条清晰不模糊。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:35
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_syncTraceSize() {
+    var wh_dpr = window.devicePixelRatio || 1;
+    var wh_w = wh_probeEl.clientWidth;
+    var wh_h = wh_probeEl.clientHeight;
+    wh_trace.width = Math.max(1, Math.round(wh_w * wh_dpr));
+    wh_trace.height = Math.max(1, Math.round(wh_h * wh_dpr));
+    wh_traceCtx.setTransform(wh_dpr, 0, 0, wh_dpr, 0, 0);
+    wh_traceCtx.lineWidth = 2.5;
+    wh_traceCtx.lineCap = "round";
+    wh_traceCtx.lineJoin = "round";
+  }
+
+  /**
+   * 功能: wh_relPoint
+   * 简介: 把视口坐标换算成探针区内部坐标，并带上探针当时的宽高。
+   *       轨迹必须存"相对探针"的坐标：页面滚动后探针区的视口位置会变，
+   *       直接用 clientY 画会导致轨迹跑到画布外（之前看不到草图就是这个原因）。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:35
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_relPoint(wh_clientX, wh_clientY) {
+    var wh_rect = wh_probeEl.getBoundingClientRect();
+    return {
+      x: wh_clientX - wh_rect.left,
+      y: wh_clientY - wh_rect.top,
+      probeW: wh_rect.width,
+      probeH: wh_rect.height
+    };
+  }
+
+  /**
+   * 功能: wh_drawLive
+   * 简介: 在探针区内部实时画线：取当前路径的最后两个采样点连一条线段，
+   *       每来一次移动就画一段，用户按住拖动时就能立刻看到自己的轨迹。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:35
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_drawLive() {
+    if (!wh_current || wh_current.path.length < 2) return;
+    var wh_n = wh_current.path.length;
+    var wh_a = wh_current.path[wh_n - 2];
+    var wh_b = wh_current.path[wh_n - 1];
+    wh_traceCtx.strokeStyle = wh_current.color;
+    wh_traceCtx.beginPath();
+    wh_traceCtx.moveTo(wh_a.x, wh_a.y);
+    wh_traceCtx.lineTo(wh_b.x, wh_b.y);
+    wh_traceCtx.stroke();
+  }
 
   /**
    * 功能: wh_now
@@ -304,19 +369,19 @@
 
   /**
    * 功能: wh_updateState
-   * 简介: 刷新第 2 节的实时状态面板：触点数量、当前坐标、本次 touchmove 次数、
-   *       相对起点的横向 dx 与纵向 dy。
+   * 简介: 刷新第 2 节的实时状态面板：触点数量、当前探针内坐标、
+   *       本次 touchmove 次数、相对起点的横向 dx 与纵向 dy。
    * 作者: 吴欢
-   * 建立时间: 2026-11-16 14:08
+   * 建立时间: 2026-11-16 14:35
    * 使用模型: DeepSeek-V4.1-Flash
    */
-  function wh_updateState(wh_touch) {
-    document.getElementById("whPointNum").textContent = wh_touch && wh_touch.touches ? wh_touch.touches.length : 0;
-    if (wh_touch && wh_current) {
-      document.getElementById("whPos").textContent = Math.round(wh_touch.clientX) + " / " + Math.round(wh_touch.clientY);
+  function wh_updateState(wh_pointNum, wh_x, wh_y) {
+    document.getElementById("whPointNum").textContent = wh_pointNum;
+    if (wh_current && typeof wh_x === "number") {
+      document.getElementById("whPos").textContent = Math.round(wh_x) + " / " + Math.round(wh_y);
       document.getElementById("whMoveCount").textContent = wh_current.moveCount;
-      document.getElementById("whDx").textContent = Math.round(wh_touch.clientX - wh_current.startX);
-      document.getElementById("whDy").textContent = Math.round(wh_touch.clientY - wh_current.startY);
+      document.getElementById("whDx").textContent = Math.round(wh_x - wh_current.startX);
+      document.getElementById("whDy").textContent = Math.round(wh_y - wh_current.startY);
     }
   }
 
@@ -396,16 +461,20 @@
    * 使用模型: DeepSeek-V4.1-Flash
    */
   function wh_drawPath(wh_g) {
-    var wh_ratio = wh_canvas.width / wh_canvas.clientWidth;
-    var wh_color = wh_colors[(wh_gestures.length - 1) % wh_colors.length];
+    var wh_s = Math.min(wh_canvas.width / (wh_g.probeW || 1), wh_canvas.height / (wh_g.probeH || 1));
+    var wh_offX = (wh_canvas.width - (wh_g.probeW || 0) * wh_s) / 2;
+    var wh_offY = (wh_canvas.height - (wh_g.probeH || 0) * wh_s) / 2;
+    var wh_color = wh_g.color || wh_colors[0];
 
     wh_ctx.strokeStyle = wh_color;
-    wh_ctx.lineWidth = 2 * wh_ratio;
+    wh_ctx.lineWidth = 2 * wh_s;
+    wh_ctx.lineCap = "round";
+    wh_ctx.lineJoin = "round";
     wh_ctx.beginPath();
     for (var wh_i = 0; wh_i < wh_g.path.length; wh_i++) {
       var wh_p = wh_g.path[wh_i];
-      var wh_x = wh_p.x * wh_ratio;
-      var wh_y = (wh_p.y - wh_canvas.getBoundingClientRect().top) * wh_ratio;
+      var wh_x = wh_offX + wh_p.x * wh_s;
+      var wh_y = wh_offY + wh_p.y * wh_s;
       if (wh_i === 0) wh_ctx.moveTo(wh_x, wh_y);
       else wh_ctx.lineTo(wh_x, wh_y);
     }
@@ -413,20 +482,20 @@
 
     // 起点 ○
     if (wh_g.path.length) {
-      var wh_s = wh_g.path[0];
+      var wh_s0 = wh_g.path[0];
       wh_ctx.beginPath();
-      wh_ctx.arc(wh_s.x * wh_ratio, (wh_s.y - wh_canvas.getBoundingClientRect().top) * wh_ratio, 6 * wh_ratio, 0, Math.PI * 2);
+      wh_ctx.arc(wh_offX + wh_s0.x * wh_s, wh_offY + wh_s0.y * wh_s, 6 * wh_s, 0, Math.PI * 2);
       wh_ctx.stroke();
 
       // 终点 ×
       var wh_l = wh_g.path[wh_g.path.length - 1];
-      var wh_lx = wh_l.x * wh_ratio;
-      var wh_ly = (wh_l.y - wh_canvas.getBoundingClientRect().top) * wh_ratio;
+      var wh_lx = wh_offX + wh_l.x * wh_s;
+      var wh_ly = wh_offY + wh_l.y * wh_s;
       wh_ctx.beginPath();
-      wh_ctx.moveTo(wh_lx - 6 * wh_ratio, wh_ly - 6 * wh_ratio);
-      wh_ctx.lineTo(wh_lx + 6 * wh_ratio, wh_ly + 6 * wh_ratio);
-      wh_ctx.moveTo(wh_lx + 6 * wh_ratio, wh_ly - 6 * wh_ratio);
-      wh_ctx.lineTo(wh_lx - 6 * wh_ratio, wh_ly + 6 * wh_ratio);
+      wh_ctx.moveTo(wh_lx - 6 * wh_s, wh_ly - 6 * wh_s);
+      wh_ctx.lineTo(wh_lx + 6 * wh_s, wh_ly + 6 * wh_s);
+      wh_ctx.moveTo(wh_lx + 6 * wh_s, wh_ly - 6 * wh_s);
+      wh_ctx.lineTo(wh_lx - 6 * wh_s, wh_ly + 6 * wh_s);
       wh_ctx.stroke();
     }
   }
@@ -442,22 +511,27 @@
   function wh_onTouchStart(wh_e) {
     var wh_t = wh_firstTouch(wh_e);
     if (!wh_t) return;
+    var wh_p = wh_relPoint(wh_t.clientX, wh_t.clientY);
+    wh_syncTraceSize();
     wh_current = {
-      startX: wh_t.clientX,
-      startY: wh_t.clientY,
-      endX: wh_t.clientX,
-      endY: wh_t.clientY,
+      startX: wh_p.x,
+      startY: wh_p.y,
+      endX: wh_p.x,
+      endY: wh_p.y,
       startAt: Date.now(),
       endAt: Date.now(),
       moveCount: 0,
       maxTouches: wh_e.touches.length,
       seq: ["touchstart"],
       hasClick: false,
-      path: [{ x: wh_t.clientX, y: wh_t.clientY }]
+      color: wh_colors[wh_gestures.length % wh_colors.length],
+      probeW: wh_p.probeW,
+      probeH: wh_p.probeH,
+      path: [{ x: wh_p.x, y: wh_p.y }]
     };
     wh_probeEl.classList.add("wh_active");
     wh_logEvent("touchstart", wh_e);
-    wh_updateState(wh_e.touches.length ? { touches: wh_e.touches, clientX: wh_t.clientX, clientY: wh_t.clientY } : null);
+    wh_updateState(wh_e.touches.length, wh_p.x, wh_p.y);
   }
 
   /**
@@ -471,29 +545,31 @@
   function wh_onTouchMove(wh_e) {
     var wh_t = wh_firstTouch(wh_e);
     if (!wh_t) return;
+    var wh_p = wh_relPoint(wh_t.clientX, wh_t.clientY);
     if (wh_current) {
-      wh_current.endX = wh_t.clientX;
-      wh_current.endY = wh_t.clientY;
+      wh_current.endX = wh_p.x;
+      wh_current.endY = wh_p.y;
       wh_current.endAt = Date.now();
       if (wh_e.touches.length > wh_current.maxTouches) {
         wh_current.maxTouches = wh_e.touches.length;
       }
-      wh_current.path.push({ x: wh_t.clientX, y: wh_t.clientY });
+      wh_current.path.push({ x: wh_p.x, y: wh_p.y });
+      // 实时把这一段画到探针区里，操作时就能看到轨迹
+      wh_drawLive();
     }
     wh_logEvent("touchmove", wh_e);
 
-    // 光点跟随
-    var wh_rect = wh_probeEl.getBoundingClientRect();
+    // 光点跟随（坐标已经是探针内坐标，直接用于 left/top）
     var wh_dot = wh_probeEl.querySelector(".wh_dot");
     if (!wh_dot) {
       wh_dot = document.createElement("div");
       wh_dot.className = "wh_dot";
       wh_probeEl.appendChild(wh_dot);
     }
-    wh_dot.style.left = (wh_t.clientX - wh_rect.left) + "px";
-    wh_dot.style.top = (wh_t.clientY - wh_rect.top) + "px";
+    wh_dot.style.left = wh_p.x + "px";
+    wh_dot.style.top = wh_p.y + "px";
 
-    wh_updateState(wh_e);
+    wh_updateState(wh_e.touches.length, wh_p.x, wh_p.y);
   }
 
   /**
@@ -507,8 +583,9 @@
   function wh_onTouchEnd(wh_e) {
     var wh_t = wh_firstTouch(wh_e);
     if (wh_t && wh_current) {
-      wh_current.endX = wh_t.clientX;
-      wh_current.endY = wh_t.clientY;
+      var wh_p = wh_relPoint(wh_t.clientX, wh_t.clientY);
+      wh_current.endX = wh_p.x;
+      wh_current.endY = wh_p.y;
       wh_current.endAt = Date.now();
     }
     wh_logEvent("touchend", wh_e);
@@ -563,6 +640,7 @@
     wh_logBody.innerHTML = '<tr><td colspan="7" class="wh_empty">暂无记录，请在探针区操作</td></tr>';
     wh_gestureBody.innerHTML = '<tr><td colspan="8" class="wh_empty">暂无手势记录</td></tr>';
     wh_ctx.clearRect(0, 0, wh_canvas.width, wh_canvas.height);
+    wh_traceCtx.clearRect(0, 0, wh_trace.clientWidth, wh_trace.clientHeight);
     document.getElementById("whPointNum").textContent = "0";
     document.getElementById("whPos").textContent = "- / -";
     document.getElementById("whMoveCount").textContent = "0";
@@ -571,23 +649,86 @@
   }
 
   /**
-   * 功能: wh_bindEvents
-   * 简介: 把 5 类事件绑定到探针区：touchstart / touchmove / touchend / touchcancel / click；
-   *       同时绑定"清空记录"按钮。touchmove 用 passive:false 以便未来需要时能 preventDefault。
+   * 功能: wh_onPointerDown
+   * 简介: 桌面鼠标兜底（没有触摸屏时使用）：把 pointerdown 当作按下，
+   *       用一个只有一个触点的"伪事件对象"复用触摸逻辑，从而在电脑上也能
+   *       记录事件与绘制轨迹。
    * 作者: 吴欢
-   * 建立时间: 2026-11-16 14:08
+   * 建立时间: 2026-11-16 14:35
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onPointerDown(wh_e) {
+    wh_probeEl.setPointerCapture(wh_e.pointerId);
+    wh_onTouchStart({
+      touches: [{ clientX: wh_e.clientX, clientY: wh_e.clientY }],
+      changedTouches: [{ clientX: wh_e.clientX, clientY: wh_e.clientY }]
+    });
+  }
+
+  /**
+   * 功能: wh_onPointerMove
+   * 简介: 桌面鼠标拖动：仅在按下状态（buttons 含左键）时转发为移动事件，
+   *       复用触摸的路径采样与实时绘制。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:35
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onPointerMove(wh_e) {
+    if (!wh_current) return;
+    wh_onTouchMove({
+      touches: [{ clientX: wh_e.clientX, clientY: wh_e.clientY }],
+      changedTouches: [{ clientX: wh_e.clientX, clientY: wh_e.clientY }]
+    });
+  }
+
+  /**
+   * 功能: wh_onPointerUp
+   * 简介: 桌面鼠标抬起：转发为 touchend 完成结算；指针离开/取消时按 touchcancel 处理。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:35
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_onPointerUp(wh_e) {
+    if (!wh_current) return;
+    wh_onTouchEnd({
+      touches: [],
+      changedTouches: [{ clientX: wh_e.clientX, clientY: wh_e.clientY }]
+    });
+  }
+
+  /**
+   * 功能: wh_bindEvents
+   * 简介: 绑定事件。触屏设备走 touchstart / touchmove / touchend / touchcancel / click；
+   *       没有触摸能力的桌面环境改走 pointerdown / pointermove / pointerup，
+   *       保证在电脑上也能记录手势并看到轨迹草图。另外在窗口尺寸变化时同步轨迹画布。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-16 14:35
    * 使用模型: DeepSeek-V4.1-Flash
    */
   function wh_bindEvents() {
-    wh_probeEl.addEventListener("touchstart", wh_onTouchStart, { passive: true });
-    wh_probeEl.addEventListener("touchmove", wh_onTouchMove, { passive: false });
-    wh_probeEl.addEventListener("touchend", wh_onTouchEnd, { passive: true });
-    wh_probeEl.addEventListener("touchcancel", wh_onTouchCancel, { passive: true });
+    var wh_hasTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+
+    if (wh_hasTouch) {
+      wh_probeEl.addEventListener("touchstart", wh_onTouchStart, { passive: true });
+      wh_probeEl.addEventListener("touchmove", wh_onTouchMove, { passive: false });
+      wh_probeEl.addEventListener("touchend", wh_onTouchEnd, { passive: true });
+      wh_probeEl.addEventListener("touchcancel", wh_onTouchCancel, { passive: true });
+    } else {
+      wh_probeEl.addEventListener("pointerdown", wh_onPointerDown);
+      wh_probeEl.addEventListener("pointermove", wh_onPointerMove);
+      wh_probeEl.addEventListener("pointerup", wh_onPointerUp);
+      wh_probeEl.addEventListener("pointercancel", wh_onPointerUp);
+    }
+
     wh_probeEl.addEventListener("click", wh_onClick);
     document.getElementById("whClear").addEventListener("click", wh_clearAll);
     document.getElementById("whDemo").addEventListener("click", function () {
       alert("判定规则：\n双指 → ④ 双指触摸；水平位移为主且速度>0.5px/ms → ③ 快速滑；\n纵向位移>30px 且向上 → ② 向上拖动；位移<30px 且耗时≥400ms → ⑤ 长按；\n其余小位移 → ① 单击。");
     });
+
+    // 窗口尺寸变化时重设实时轨迹画布尺寸，避免高分屏下线条模糊或错位
+    window.addEventListener("resize", wh_syncTraceSize);
+    wh_syncTraceSize();
   }
 
   wh_bindEvents();

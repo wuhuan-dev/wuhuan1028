@@ -39,17 +39,20 @@
   .wh_card.wh_out_right{transform:translateX(36px);opacity:0}
   .wh_card.wh_in_right{transform:translateX(36px);opacity:0}
   .wh_card.wh_in_left{transform:translateX(-36px);opacity:0}
-  .wh_card img{width:100%;height:100%;object-fit:cover;display:block}
 
-  /* 每道菜有自己的渐变背景，图片加载失败时也能看出配色 */
-  .wh_grad{position:absolute;inset:0;opacity:.92}
+  /* 每道菜自己的渐变背景：放在最底层，仅在图片加载失败时露出，不遮挡照片 */
+  .wh_grad{position:absolute;inset:0;z-index:0}
   .wh_g1{background:linear-gradient(160deg,#7c2d12,#c2410c 55%,#f59e0b)}
   .wh_g2{background:linear-gradient(160deg,#92400e,#d97706 55%,#fbbf24)}
   .wh_g3{background:linear-gradient(160deg,#9a3412,#ea580c 55%,#fcd34d)}
   .wh_g4{background:linear-gradient(160deg,#a16207,#eab308 55%,#fde68a)}
 
-  .wh_mask{position:absolute;inset:0;background:linear-gradient(transparent 30%,rgba(30,16,6,.86))}
-  .wh_info{position:absolute;left:0;right:0;bottom:0;padding:20px 22px 24px;color:#fff}
+  /* 照片压在渐变之上，保证看得清 */
+  .wh_card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1}
+
+  /* 文字可读性遮罩：只压暗下半部分，不覆盖整张图 */
+  .wh_mask{position:absolute;inset:0;z-index:2;background:linear-gradient(transparent 38%,rgba(30,16,6,.82))}
+  .wh_info{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:20px 22px 24px;color:#fff}
   .wh_badge{display:inline-block;font-size:11.5px;padding:2px 10px;border-radius:999px;
     background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);margin-bottom:8px}
   .wh_info h2{font-size:22px;letter-spacing:1px;margin-bottom:6px}
