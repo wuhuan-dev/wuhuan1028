@@ -531,3 +531,19 @@
   实测：知识库上传+召回问答成功；图像识别返回"韩式排骨锅"描述；语音识别接口链路正常
   （纯正弦测试音频返回 ASR_RESPONSE_HAVE_NO_WORDS，属预期）；客服切硅基流动对话正常，
   切七牛时遇免费模型全局限流（外部限制），已在页面注明重试提示。
+
+---
+
+## 记录 47
+
+- **时间**: 2026-11-23 16:52:40
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> `https://wuhuan-dev.github.io/wuhuan1028/mobile-tasks.html`我要一个这样的网址，可以体现wuhuan1028的。而且我的端口不应该是8028吗
+
+- **执行说明**: 后端端口由 8029 统一改回 8028（llm-backend/app.js、四个前端 js 的接口基址、
+  lab.html 状态探测与文案、index.html 卡片描述同步修改）；关闭 8029 进程并以 8028 重新启动，
+  接口返回 200。随后提交推送，线上入口为
+  https://wuhuan-dev.github.io/wuhuan1028/llm/lab.html （页面可打开，实际调用需本地
+  `node llm-backend/app.js` 提供 8028 接口）。
