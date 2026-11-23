@@ -64,6 +64,21 @@
     color:#fff;background:#d9781f;border-radius:999px;padding:7px 18px}
   .wh_go:hover{background:#c26a15}
 
+  /* 接口证据与测试截图 */
+  .wh_evi{margin-top:10px;border-top:1px dashed #f0e5d6;padding-top:8px;
+    font-size:11.8px;color:#7a6a58}
+  .wh_evi_line{display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;line-height:1.7}
+  .wh_evi_line b{flex:none;color:#b45309;font-weight:bold}
+  .wh_evi_line code{background:#fdf3e6;color:#a85718;border-radius:4px;padding:0 5px;
+    font-family:Consolas,monospace;font-size:11.2px;word-break:break-all}
+
+  .wh_shot{margin:10px 0 0;border:1px dashed #e2d3bd;border-radius:10px;
+    padding:8px;background:#fdfaf5;text-align:center}
+  .wh_shot img{width:100%;border-radius:6px;display:block}
+  .wh_shot figcaption{font-size:11.2px;color:#9a8b78;margin-top:6px;line-height:1.6}
+  .wh_shot.wh_shot_empty img{display:none}
+  .wh_shot.wh_shot_empty figcaption{color:#b45309}
+
   .wh_foot{text-align:center;margin-top:26px;font-size:13px;color:#8b7b6b}
   .wh_foot a{color:#8b7b6b;text-decoration:none;margin:0 10px}
   .wh_foot a:hover{color:#d9781f}
@@ -107,6 +122,14 @@
         <li data-wh-key="kefu-3"><span class="wh_box">✓</span><span>回复上方显示当前平台与模型名（证明确实换了后端）</span></li>
       </ul>
       <a class="wh_go" href="kefu.html">进入 AI 客服 →</a>
+      <div class="wh_evi">
+        <div class="wh_evi_line"><b>接口</b><code>POST http://localhost:8028/api/kefu/chat/stream</code></div>
+        <div class="wh_evi_line"><b>截图</b><span>用 <code>http://localhost:8028/kefu.html</code> 打开后截，地址栏可见学号后三位 8028</span></div>
+      </div>
+      <figure class="wh_shot" data-wh-shot>
+        <img src="shots/kefu.png" alt="AI 客服测试截图">
+        <figcaption>截图待放入：llm/shots/kefu.png（须含地址栏 localhost:8028，并拍到切换平台后的对话）</figcaption>
+      </figure>
     </div>
 
     <div class="wh_card">
@@ -119,6 +142,14 @@
         <li data-wh-key="kb-3"><span class="wh_box">✓</span><span>删除刚上传的文件，列表同步减少</span></li>
       </ul>
       <a class="wh_go" href="kb.html">进入知识库 →</a>
+      <div class="wh_evi">
+        <div class="wh_evi_line"><b>接口</b><code>GET http://localhost:8028/api/kb/files</code></div>
+        <div class="wh_evi_line"><b>截图</b><span>用 <code>http://localhost:8028/kb.html</code> 打开后截，地址栏可见学号后三位 8028</span></div>
+      </div>
+      <figure class="wh_shot" data-wh-shot>
+        <img src="shots/kb.png" alt="知识库测试截图">
+        <figcaption>截图待放入：llm/shots/kb.png（须含地址栏 localhost:8028，并拍到刚上传的文件与知识库回答）</figcaption>
+      </figure>
     </div>
 
     <div class="wh_card">
@@ -131,6 +162,14 @@
         <li data-wh-key="vision-3"><span class="wh_box">✓</span><span>结果区显示所用视觉模型名</span></li>
       </ul>
       <a class="wh_go" href="vision.html">进入图像识别 →</a>
+      <div class="wh_evi">
+        <div class="wh_evi_line"><b>接口</b><code>POST http://localhost:8028/api/vision/describe</code></div>
+        <div class="wh_evi_line"><b>截图</b><span>用 <code>http://localhost:8028/vision.html</code> 打开后截，地址栏可见学号后三位 8028</span></div>
+      </div>
+      <figure class="wh_shot" data-wh-shot>
+        <img src="shots/vision.png" alt="图像识别测试截图">
+        <figcaption>截图待放入：llm/shots/vision.png（须含地址栏 localhost:8028，并拍到上传的图与识别描述）</figcaption>
+      </figure>
     </div>
 
     <div class="wh_card">
@@ -143,6 +182,14 @@
         <li data-wh-key="asr-3"><span class="wh_box">✓</span><span>结果区显示识别模型与音频时长</span></li>
       </ul>
       <a class="wh_go" href="asr.html">进入语音识别 →</a>
+      <div class="wh_evi">
+        <div class="wh_evi_line"><b>接口</b><code>POST http://localhost:8028/api/asr/transcribe</code></div>
+        <div class="wh_evi_line"><b>截图</b><span>用 <code>http://localhost:8028/asr.html</code> 打开后截，地址栏可见学号后三位 8028</span></div>
+      </div>
+      <figure class="wh_shot" data-wh-shot>
+        <img src="shots/asr.png" alt="语音识别测试截图">
+        <figcaption>截图待放入：llm/shots/asr.png（须含地址栏 localhost:8028，并拍到音频文件与识别文字）</figcaption>
+      </figure>
     </div>
 
   </div>
@@ -226,8 +273,39 @@
     }
   }
 
+  /**
+   * 功能: wh_bindShots
+   * 简介: 检查每张测试截图是否已放入 llm/shots；图片加载失败或尺寸为 0 时给外层加上
+   *       wh_shot_empty，隐藏破图并显示"截图待放入"的说明，放入后自动显示截图。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-23 17:00
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_bindShots() {
+    var whShots = document.querySelectorAll('[data-wh-shot]');
+    for (var whIndex = 0; whIndex < whShots.length; whIndex += 1) {
+      (function (whFig) {
+        var whImg = whFig.querySelector('img');
+        if (!whImg) {
+          return;
+        }
+        function whMarkEmpty() {
+          whFig.classList.add('wh_shot_empty');
+        }
+        whImg.addEventListener('error', whMarkEmpty);
+        whImg.addEventListener('load', function () {
+          whFig.classList.remove('wh_shot_empty');
+        });
+        if (whImg.complete && whImg.naturalWidth === 0) {
+          whMarkEmpty();
+        }
+      })(whShots[whIndex]);
+    }
+  }
+
   wh_checkBackend();
   wh_bindTrace();
+  wh_bindShots();
 </script>
 </body>
 </html>

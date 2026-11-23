@@ -547,3 +547,21 @@
   接口返回 200。随后提交推送，线上入口为
   https://wuhuan-dev.github.io/wuhuan1028/llm/lab.html （页面可打开，实际调用需本地
   `node llm-backend/app.js` 提供 8028 接口）。
+
+---
+
+## 记录 48
+
+- **时间**: 2026-11-23 17:06:20
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> 这4个内容的测试截图必须包含url，里面有接口信息包含我的学号后三位，也就是8028。图片是示例
+
+- **执行说明**: 在 llm/lab.html 四张能力卡片底部统一增加"接口证据 + 测试截图"区块：
+  ① 接口行显示完整地址（POST/GET http://localhost:8028/api/…），② 截图规范说明
+  （必须用 http://localhost:8028/xxx.html 打开后截，地址栏即可体现学号后三位 8028），
+  ③ 截图位 img 指向 llm/shots/kefu.png、kb.png、vision.png、asr.png，文件未放入时由
+  wh_bindShots 隐藏破图并显示"截图待放入"提示，放入后自动展示。已创建 llm/shots 目录。
+  另外发现 8028 被原项目后端占用（无 lab.html），已停止该进程并改用本项目的
+  llm-backend 服务，验证 /lab.html 与 /api/kb/files 均返回 200。
