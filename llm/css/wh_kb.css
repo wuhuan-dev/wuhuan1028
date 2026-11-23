@@ -1,0 +1,461 @@
+/*
+ * 姓名：吴欢 | 学号: 24001011028 | 时间：2026-11-23 | 大模型：DeepSeek-V4.1-Flash
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  color: #e8f0ff;
+  background:
+    radial-gradient(900px 500px at 12% 0%, rgba(94, 242, 196, 0.12), transparent 60%),
+    radial-gradient(900px 600px at 100% 100%, rgba(127, 211, 255, 0.1), transparent 55%),
+    #070b1a;
+}
+
+.wh_kb_page {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 30px 0 24px;
+}
+
+.wh_kb_header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.wh_kb_eyebrow {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: #5ef2c4;
+}
+
+.wh_kb_title {
+  margin: 0;
+  font-size: clamp(24px, 3.4vw, 34px);
+  font-weight: 700;
+  background: linear-gradient(120deg, #ffffff 10%, #8affd8 55%, #7fd3ff 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wh_kb_subtitle {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #9fb2d4;
+}
+
+.wh_kb_subtitle code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #8affd8;
+  background: rgba(94, 242, 196, 0.1);
+}
+
+.wh_kb_layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.wh_kb_panel,
+.wh_kb_chat {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 620px;
+  padding: 16px;
+  border: 1px solid rgba(140, 220, 200, 0.18);
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(18, 38, 48, 0.84), rgba(10, 18, 34, 0.74));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.wh_kb_panel_head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(140, 220, 200, 0.12);
+}
+
+.wh_kb_panel_head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #d9fff2;
+}
+
+.wh_kb_panel_head span {
+  font-size: 12px;
+  color: #6f9c92;
+}
+
+.wh_kb_upload {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.wh_kb_pick,
+.wh_kb_submit,
+.wh_kb_send {
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wh_kb_pick {
+  flex: none;
+  padding: 8px 12px;
+  color: #d9fff2;
+  background: rgba(94, 242, 196, 0.14);
+  border: 1px solid rgba(94, 242, 196, 0.35);
+}
+
+.wh_kb_submit {
+  flex: none;
+  padding: 9px 16px;
+  font-weight: 600;
+  color: #04140f;
+  background: linear-gradient(120deg, #5ef2c4, #7fd3ff);
+}
+
+.wh_kb_pick:disabled,
+.wh_kb_submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wh_kb_filename {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: #8fa5c9;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wh_kb_hint {
+  margin: 10px 0 12px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #6f9c92;
+}
+
+.wh_kb_list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wh_kb_list::-webkit-scrollbar,
+.wh_kb_messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wh_kb_list::-webkit-scrollbar-thumb,
+.wh_kb_messages::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(140, 220, 200, 0.22);
+}
+
+.wh_kb_item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(140, 220, 200, 0.12);
+  border-radius: 12px;
+  background: rgba(6, 18, 24, 0.55);
+}
+
+.wh_kb_item_main {
+  flex: 1;
+  min-width: 0;
+}
+
+.wh_kb_item_name {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  color: #d9fff2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wh_kb_item_meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: #6f9c92;
+}
+
+.wh_kb_delete {
+  flex: none;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 120, 135, 0.4);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: #ffc7cd;
+  background: rgba(180, 55, 75, 0.16);
+  cursor: pointer;
+}
+
+.wh_kb_delete:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wh_kb_empty {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 12.5px;
+  color: #6f9c92;
+}
+
+.wh_kb_chat_head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(140, 220, 200, 0.12);
+  font-size: 12px;
+  color: #8fc9b8;
+}
+
+.wh_kb_dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5ef2c4;
+  box-shadow: 0 0 10px rgba(94, 242, 196, 0.8);
+}
+
+.wh_kb_provider {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  font-size: 12px;
+  color: #8fc9b8;
+}
+
+.wh_kb_provider select {
+  padding: 5px 9px;
+  border: 1px solid rgba(140, 220, 200, 0.28);
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+  font-size: 12px;
+  color: #d9fff2;
+  background: rgba(6, 18, 24, 0.8);
+  cursor: pointer;
+}
+
+.wh_kb_provider select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wh_kb_messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wh_kb_msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 82%;
+  gap: 5px;
+}
+
+.wh_kb_msg--user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.wh_kb_msg--ai {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.wh_kb_msg_role {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #6f9c92;
+}
+
+.wh_kb_bubble {
+  padding: 11px 15px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.wh_kb_msg--user .wh_kb_bubble {
+  color: #04140f;
+  background: linear-gradient(120deg, #5ef2c4, #7fd3ff);
+  border-bottom-right-radius: 4px;
+}
+
+.wh_kb_msg--ai .wh_kb_bubble {
+  color: #e4f6f0;
+  background: rgba(22, 48, 52, 0.78);
+  border: 1px solid rgba(140, 220, 200, 0.16);
+  border-bottom-left-radius: 4px;
+}
+
+.wh_kb_bubble--thinking {
+  color: #8fc9b8;
+}
+
+.wh_kb_bubble--thinking::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  margin-left: 4px;
+  vertical-align: text-bottom;
+  background: #5ef2c4;
+  animation: wh_kb_blink 1s steps(2, start) infinite;
+}
+
+.wh_kb_bubble--error {
+  color: #ffc7cd;
+  border-color: rgba(255, 120, 135, 0.4);
+  background: rgba(180, 55, 75, 0.16);
+}
+
+@keyframes wh_kb_blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.wh_kb_composer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid rgba(140, 220, 200, 0.2);
+  border-radius: 14px;
+  background: rgba(6, 18, 24, 0.66);
+}
+
+.wh_kb_composer:focus-within {
+  border-color: rgba(94, 242, 196, 0.55);
+  box-shadow: 0 0 0 3px rgba(94, 242, 196, 0.1);
+}
+
+.wh_kb_input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 0;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: #ffffff;
+  background: transparent;
+}
+
+.wh_kb_input::placeholder {
+  color: #5f8288;
+}
+
+.wh_kb_send {
+  padding: 9px 20px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #04140f;
+  background: linear-gradient(120deg, #5ef2c4, #7fd3ff);
+}
+
+.wh_kb_send:hover:not(:disabled),
+.wh_kb_submit:hover:not(:disabled),
+.wh_kb_pick:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.wh_kb_send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wh_kb_back {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+  font-size: 12.5px;
+  color: #8fa5c9;
+  text-decoration: none;
+}
+
+.wh_kb_back:hover {
+  color: #5ef2c4;
+}
+
+@media (max-width: 900px) {
+  .wh_kb_layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .wh_kb_panel {
+    height: 320px;
+  }
+
+  .wh_kb_chat {
+    height: 560px;
+  }
+}
+
+@media (max-width: 560px) {
+  .wh_kb_page {
+    width: calc(100% - 24px);
+    padding-top: 18px;
+  }
+
+  .wh_kb_subtitle {
+    font-size: 12px;
+  }
+
+  .wh_kb_msg {
+    max-width: 90%;
+  }
+}

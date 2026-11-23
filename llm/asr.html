@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!-- 姓名：吴欢 | 学号: 24001011028 | 时间：2026-11-23 | 大模型：DeepSeek-V4.1-Flash -->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>语音识别 - 吴欢课程项目</title>
+  <link rel="stylesheet" href="css/wh_asr.css">
+</head>
+<body>
+  <div class="wh_asr_page">
+    <header class="wh_asr_header">
+      <p class="wh_asr_eyebrow">SPEECH · SPEECH TO TEXT</p>
+      <h1 class="wh_asr_title">语音识别</h1>
+      <p class="wh_asr_subtitle">
+        上传音频，转换为文字 · 接口 <code>POST /api/asr/transcribe</code> ·
+        <span id="wh_asr_model">qwen-audio-3.0-asr-flash</span>
+      </p>
+    </header>
+
+    <main class="wh_asr_layout">
+      <section class="wh_asr_card">
+        <div class="wh_asr_audio" id="wh_asr_audio">
+          <p class="wh_asr_placeholder" id="wh_asr_placeholder">还没有选择音频<br>支持 wav / mp3 / webm / ogg / m4a，最大 20MB</p>
+          <audio class="wh_asr_player" id="wh_asr_player" controls hidden></audio>
+        </div>
+
+        <form class="wh_asr_form" id="wh_asr_form">
+          <input id="wh_asr_file" type="file" accept="audio/*" hidden>
+          <button class="wh_asr_pick" type="button" id="wh_asr_pick">选择音频</button>
+          <input class="wh_asr_filename" id="wh_asr_filename" value="未选择音频" readonly>
+          <button class="wh_asr_submit" type="submit" id="wh_asr_submit">开始识别</button>
+        </form>
+
+        <p class="wh_asr_status" id="wh_asr_status">选择音频后点击“开始识别”</p>
+      </section>
+
+      <section class="wh_asr_result">
+        <div class="wh_asr_result_head">
+          <span class="wh_asr_dot" aria-hidden="true"></span>
+          <span>识别文字</span>
+          <button class="wh_asr_copy" type="button" id="wh_asr_copy" disabled>复制</button>
+        </div>
+        <div class="wh_asr_result_body" id="wh_asr_result">
+          <p class="wh_asr_result_empty">语音转换出的文字会显示在这里</p>
+        </div>
+      </section>
+    </main>
+
+    <a class="wh_asr_back" href="lab.html">← 返回首页导航</a>
+  </div>
+
+  <script src="js/wh_asr.js"></script>
+</body>
+</html>

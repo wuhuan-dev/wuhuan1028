@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<!--
+  作者: 吴欢
+  建立时间: 2026-11-23 16:20
+  使用模型: DeepSeek-V4.1-Flash
+  功能名称及简介: LLM 实践操作痕迹展示 - 课程实践中四项大模型能力的统一入口与现场演示
+                  痕迹清单：① AI 客服（硅基流动 / 七牛 双平台热切换）② 知识库上传与问答
+                  ③ 图像识别 ④ 语音识别。页面顶部实时探测本地后端（8028）是否在线，
+                  每张卡片列出可勾选的验收痕迹，便于课堂现场逐项演示打勾。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 实践操作痕迹展示</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+    background:radial-gradient(circle at 50% 0%,#fdf3e6,#fdf8f2 55%);color:#3a2f26;
+    line-height:1.8;min-height:100vh}
+  .wh_wrap{max-width:880px;margin:0 auto;padding:26px 16px 56px}
+
+  .wh_head{text-align:center;padding:8px 0 18px}
+  .wh_head .wh_tag{display:inline-block;font-size:12px;color:#b45309;background:#fdf3e6;
+    border:1px solid #f0d9bc;border-radius:999px;padding:3px 13px;margin-bottom:12px}
+  .wh_head h1{font-size:22px;letter-spacing:1px;color:#2c211a}
+  .wh_head h1 b{color:#d9781f}
+  .wh_head p{font-size:13px;color:#8b7b6b;margin-top:6px}
+
+  .wh_status{display:flex;align-items:center;gap:8px;justify-content:center;
+    font-size:12.5px;margin-top:12px;color:#8b7b6b}
+  .wh_dot{width:9px;height:9px;border-radius:50%;background:#c9b9a6;flex:none}
+  .wh_dot.wh_on{background:#2fa36b;box-shadow:0 0 0 3px rgba(47,163,107,.16)}
+  .wh_dot.wh_off{background:#d9534f;box-shadow:0 0 0 3px rgba(217,83,79,.14)}
+
+  .wh_how{background:#fff;border:1px solid #efe4d5;border-radius:12px;padding:12px 16px;
+    font-size:12.5px;color:#6b5b4a;margin:14px 0 18px}
+  .wh_how b{color:#b45309}
+  .wh_how code{background:#fdf3e6;color:#a85718;border-radius:4px;padding:1px 6px;
+    font-family:Consolas,monospace;font-size:12px}
+
+  .wh_grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .wh_card{position:relative;background:#fff;border:1px solid #efe4d5;border-radius:16px;
+    padding:18px 18px 14px;box-shadow:0 6px 18px rgba(92,60,20,.06);
+    transition:transform .18s ease,border-color .18s ease}
+  .wh_card:hover{transform:translateY(-3px);border-color:#e8a75e}
+  .wh_no{position:absolute;right:15px;top:12px;font-size:24px;font-weight:bold;
+    color:#f6e7d2;font-family:Consolas,monospace;line-height:1}
+  .wh_card h2{font-size:15.5px;color:#2c211a;margin-bottom:4px;padding-right:36px}
+  .wh_dim{display:inline-block;font-size:11.5px;color:#b45309;background:#fdf3e6;
+    border-radius:999px;padding:1px 9px;margin-bottom:8px}
+
+  .wh_trace{list-style:none;margin:8px 0 10px}
+  .wh_trace li{display:flex;gap:8px;align-items:flex-start;font-size:12.3px;color:#5f5142;
+    padding:4px 0;cursor:pointer;border-bottom:1px dashed #f4ebdf}
+  .wh_trace li:last-child{border-bottom:none}
+  .wh_trace li .wh_box{flex:none;width:15px;height:15px;margin-top:2px;border:1.5px solid #d9c9b4;
+    border-radius:4px;text-align:center;line-height:12px;font-size:11px;color:#fff;
+    transition:background .15s,border-color .15s}
+  .wh_trace li.wh_done .wh_box{background:#2fa36b;border-color:#2fa36b}
+  .wh_trace li.wh_done{color:#9a8c7c;text-decoration:line-through}
+
+  .wh_go{display:inline-block;text-decoration:none;font-size:12.5px;font-weight:bold;
+    color:#fff;background:#d9781f;border-radius:999px;padding:7px 18px}
+  .wh_go:hover{background:#c26a15}
+
+  .wh_foot{text-align:center;margin-top:26px;font-size:13px;color:#8b7b6b}
+  .wh_foot a{color:#8b7b6b;text-decoration:none;margin:0 10px}
+  .wh_foot a:hover{color:#d9781f}
+
+  @media (max-width:620px){
+    .wh_grid{grid-template-columns:1fr}
+    .wh_head h1{font-size:19px}
+  }
+</style>
+</head>
+<body>
+<div class="wh_wrap">
+
+  <div class="wh_head">
+    <span class="wh_tag">课程实践 · 大模型能力</span>
+    <h1>LLM 实践<span style="color:#d9781f">操作痕迹</span>展示</h1>
+    <p>四项能力各自一页，现场可逐项演示；每张卡片里的清单点一下即可打勾，作为本次实操的痕迹记录。</p>
+    <div class="wh_status">
+      <span class="wh_dot" id="whDot"></span>
+      <span id="whStatusText">正在检测本地后端…</span>
+    </div>
+  </div>
+
+  <div class="wh_how">
+    <b>启动方式：</b>项目根目录执行 <code>node llm-backend/app.js</code>，后端监听 <code>8028</code>；
+    也可直接访问 <code>http://localhost:8028/kefu.html</code> 等页面。四项接口均由后端持有 Key，
+    前端不接触任何密钥。
+    <br><b>提示：</b>七牛的免费模型 <code>qiniu/conatus-free</code> 存在全局限流，遇到
+    <code>Too many requests</code> 稍等几秒重试即可；现场演示建议先用硅基流动，再切七牛对照。
+  </div>
+
+  <div class="wh_grid">
+
+    <div class="wh_card">
+      <span class="wh_no">01</span>
+      <h2>AI 客服 · 双平台热切换</h2>
+      <span class="wh_dim">硅基流动 / 七牛</span>
+      <ul class="wh_trace">
+        <li data-wh-key="kefu-1"><span class="wh_box">✓</span><span>下拉框选择「硅基流动」，提问后能流式回复</span></li>
+        <li data-wh-key="kefu-2"><span class="wh_box">✓</span><span>切换为「七牛」后继续提问，同一会话照常对话</span></li>
+        <li data-wh-key="kefu-3"><span class="wh_box">✓</span><span>回复上方显示当前平台与模型名（证明确实换了后端）</span></li>
+      </ul>
+      <a class="wh_go" href="kefu.html">进入 AI 客服 →</a>
+    </div>
+
+    <div class="wh_card">
+      <span class="wh_no">02</span>
+      <h2>知识库 · 上传与问答</h2>
+      <span class="wh_dim">自己的文件</span>
+      <ul class="wh_trace">
+        <li data-wh-key="kb-1"><span class="wh_box">✓</span><span>上传自己准备的 txt / docx 文件，列表出现文件名与分片数</span></li>
+        <li data-wh-key="kb-2"><span class="wh_box">✓</span><span>就文件里的内容提问，回答能引用知识库</span></li>
+        <li data-wh-key="kb-3"><span class="wh_box">✓</span><span>删除刚上传的文件，列表同步减少</span></li>
+      </ul>
+      <a class="wh_go" href="kb.html">进入知识库 →</a>
+    </div>
+
+    <div class="wh_card">
+      <span class="wh_no">03</span>
+      <h2>图像识别</h2>
+      <span class="wh_dim">上传图片</span>
+      <ul class="wh_trace">
+        <li data-wh-key="vision-1"><span class="wh_box">✓</span><span>上传一张本地图片，页面显示缩略图</span></li>
+        <li data-wh-key="vision-2"><span class="wh_box">✓</span><span>点击识别后返回中文描述，内容与图片主体一致</span></li>
+        <li data-wh-key="vision-3"><span class="wh_box">✓</span><span>结果区显示所用视觉模型名</span></li>
+      </ul>
+      <a class="wh_go" href="vision.html">进入图像识别 →</a>
+    </div>
+
+    <div class="wh_card">
+      <span class="wh_no">04</span>
+      <h2>语音识别</h2>
+      <span class="wh_dim">录音或上传音频</span>
+      <ul class="wh_trace">
+        <li data-wh-key="asr-1"><span class="wh_box">✓</span><span>录一段语音或选择音频文件</span></li>
+        <li data-wh-key="asr-2"><span class="wh_box">✓</span><span>点击识别后返回文字，与所说内容一致</span></li>
+        <li data-wh-key="asr-3"><span class="wh_box">✓</span><span>结果区显示识别模型与音频时长</span></li>
+      </ul>
+      <a class="wh_go" href="asr.html">进入语音识别 →</a>
+    </div>
+
+  </div>
+
+  <div class="wh_foot">
+    <a href="../index.html">返回课程实践首页</a>
+    <a href="../wh_prompt.md">提示词记录</a>
+  </div>
+</div>
+
+<script>
+  /**
+   * 功能: wh_checkBackend
+   * 简介: 请求本地后端的知识库文件接口，用返回结果判断 8028 服务是否在线，
+   *       在线显示绿点与"后端已连接"，离线显示红点并提示启动命令。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-23 16:20
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_checkBackend() {
+    var whDot = document.getElementById('whDot');
+    var whText = document.getElementById('whStatusText');
+
+    fetch('http://localhost:8028/api/kb/files')
+      .then(function (whRes) { return whRes.json(); })
+      .then(function (whJson) {
+        if (whJson && whJson.code === 0) {
+          whDot.className = 'wh_dot wh_on';
+          whText.textContent = '后端已连接 · http://localhost:8028 · 知识库文件 ' + (whJson.data.total || 0) + ' 个';
+        } else {
+          throw new Error('返回异常');
+        }
+      })
+      .catch(function () {
+        whDot.className = 'wh_dot wh_off';
+        whText.textContent = '后端未连接，请先运行 node llm-backend/app.js（端口 8028）';
+      });
+  }
+
+  /**
+   * 功能: wh_bindTrace
+   * 简介: 给每一条痕迹清单绑定点击事件，点击在"已打勾/未打勾"之间切换，
+   *       并把状态写入 localStorage，刷新页面后仍保留本次演示进度。
+   * 作者: 吴欢
+   * 建立时间: 2026-11-23 16:20
+   * 使用模型: DeepSeek-V4.1-Flash
+   */
+  function wh_bindTrace() {
+    var whItems = document.querySelectorAll('.wh_trace li');
+    var whStore = {};
+
+    try {
+      whStore = JSON.parse(localStorage.getItem('wh_llm_trace') || '{}');
+    } catch (whErr) {
+      whStore = {};
+    }
+
+    function whSave() {
+      try {
+        localStorage.setItem('wh_llm_trace', JSON.stringify(whStore));
+      } catch (whErr) {
+        // 隐私模式下无法写入，忽略即可，不影响打勾本身
+      }
+    }
+
+    for (var whIndex = 0; whIndex < whItems.length; whIndex += 1) {
+      var whItem = whItems[whIndex];
+      var whKey = whItem.getAttribute('data-wh-key');
+
+      if (whStore[whKey]) {
+        whItem.classList.add('wh_done');
+      }
+
+      whItem.addEventListener('click', function () {
+        var whSelf = this;
+        var whSelfKey = whSelf.getAttribute('data-wh-key');
+        var whIsDone = whSelf.classList.toggle('wh_done');
+        whStore[whSelfKey] = whIsDone;
+        whSave();
+      });
+    }
+  }
+
+  wh_checkBackend();
+  wh_bindTrace();
+</script>
+</body>
+</html>

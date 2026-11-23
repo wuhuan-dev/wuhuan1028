@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!-- 姓名：吴欢 | 学号: 24001011028 | 时间：2026-11-23 | 大模型：DeepSeek-V4.1-Flash -->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图像识别 - 吴欢课程项目</title>
+  <link rel="stylesheet" href="css/wh_vision.css">
+</head>
+<body>
+  <div class="wh_vs_page">
+    <header class="wh_vs_header">
+      <p class="wh_vs_eyebrow">VISION · IMAGE UNDERSTANDING</p>
+      <h1 class="wh_vs_title">图像识别</h1>
+      <p class="wh_vs_subtitle">
+        上传图片，模型返回画面描述 · 接口 <code>POST /api/vision/describe</code> ·
+        <span id="wh_vs_model">Qwen/Qwen3-VL-8B-Instruct</span>
+      </p>
+    </header>
+
+    <main class="wh_vs_layout">
+      <section class="wh_vs_card">
+        <div class="wh_vs_preview" id="wh_vs_preview">
+          <p class="wh_vs_placeholder" id="wh_vs_placeholder">还没有选择图片<br>支持 jpg / png / webp / gif，最大 10MB</p>
+          <img class="wh_vs_image" id="wh_vs_image" alt="待识别图片预览" hidden>
+        </div>
+
+        <form class="wh_vs_form" id="wh_vs_form">
+          <input id="wh_vs_file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+          <button class="wh_vs_pick" type="button" id="wh_vs_pick">选择图片</button>
+          <span class="wh_vs_filename" id="wh_vs_filename">未选择图片</span>
+          <button class="wh_vs_submit" type="submit" id="wh_vs_submit">开始识别</button>
+        </form>
+
+        <p class="wh_vs_status" id="wh_vs_status">选择一张图片后点击“开始识别”</p>
+      </section>
+
+      <section class="wh_vs_result">
+        <div class="wh_vs_result_head">
+          <span class="wh_vs_dot" aria-hidden="true"></span>
+          <span>识别结果</span>
+        </div>
+        <div class="wh_vs_result_body" id="wh_vs_result">
+          <p class="wh_vs_result_empty">模型对图片的描述会显示在这里</p>
+        </div>
+      </section>
+    </main>
+
+    <a class="wh_vs_back" href="lab.html">← 返回首页导航</a>
+  </div>
+
+  <script src="js/wh_vision.js"></script>
+</body>
+</html>

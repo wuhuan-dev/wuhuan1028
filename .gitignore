@@ -1,5 +1,6 @@
 .opencode/
 node_modules/
+.env
 *.exe
 *.dll
 *.zip

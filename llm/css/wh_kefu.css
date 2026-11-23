@@ -1,0 +1,329 @@
+/*
+ * 姓名：吴欢 | 学号: 24001011028 | 时间：2026-11-23 | 大模型：DeepSeek-V4.1-Flash
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  color: #e8f0ff;
+  background: #070b1a;
+  overflow: hidden;
+}
+
+.wh_kf_canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.wh_kf_page {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  width: min(820px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 26px 0 16px;
+}
+
+.wh_kf_header {
+  flex: none;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.wh_kf_eyebrow {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: #5ef2c4;
+}
+
+.wh_kf_title {
+  margin: 0;
+  font-size: clamp(26px, 4.4vw, 38px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: linear-gradient(120deg, #ffffff 10%, #8affd8 55%, #7fd3ff 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wh_kf_subtitle {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #9fb2d4;
+}
+
+.wh_kf_subtitle code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #8affd8;
+  background: rgba(94, 242, 196, 0.1);
+}
+
+.wh_kf_chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 20px 16px;
+  border: 1px solid rgba(140, 220, 200, 0.18);
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(18, 38, 48, 0.84), rgba(10, 18, 34, 0.74));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+}
+
+.wh_kf_statusbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(140, 220, 200, 0.12);
+  font-size: 12px;
+  color: #8fc9b8;
+}
+
+.wh_kf_dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5ef2c4;
+  box-shadow: 0 0 10px rgba(94, 242, 196, 0.8);
+}
+
+.wh_kf_provider {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  font-size: 12px;
+  color: #8fc9b8;
+}
+
+.wh_kf_provider select {
+  padding: 5px 9px;
+  border: 1px solid rgba(140, 220, 200, 0.28);
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+  font-size: 12px;
+  color: #d9fff2;
+  background: rgba(6, 18, 24, 0.8);
+  cursor: pointer;
+}
+
+.wh_kf_provider select:focus {
+  border-color: rgba(94, 242, 196, 0.6);
+}
+
+.wh_kf_provider select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wh_kf_messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wh_kf_messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wh_kf_messages::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(140, 220, 200, 0.22);
+}
+
+.wh_kf_msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 82%;
+  gap: 5px;
+}
+
+.wh_kf_msg--user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.wh_kf_msg--ai {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.wh_kf_msg_role {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #6f9c92;
+}
+
+.wh_kf_bubble {
+  padding: 11px 15px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.wh_kf_msg--user .wh_kf_bubble {
+  color: #04140f;
+  background: linear-gradient(120deg, #5ef2c4, #7fd3ff);
+  border-bottom-right-radius: 4px;
+}
+
+.wh_kf_msg--ai .wh_kf_bubble {
+  color: #e4f6f0;
+  background: rgba(22, 48, 52, 0.78);
+  border: 1px solid rgba(140, 220, 200, 0.16);
+  border-bottom-left-radius: 4px;
+}
+
+.wh_kf_bubble--thinking {
+  color: #8fc9b8;
+}
+
+.wh_kf_bubble--thinking::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  margin-left: 4px;
+  vertical-align: text-bottom;
+  background: #5ef2c4;
+  animation: wh_kf_blink 1s steps(2, start) infinite;
+}
+
+.wh_kf_bubble--error {
+  color: #ffc7cd;
+  border-color: rgba(255, 120, 135, 0.4);
+  background: rgba(180, 55, 75, 0.16);
+}
+
+@keyframes wh_kf_blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.wh_kf_composer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid rgba(140, 220, 200, 0.2);
+  border-radius: 14px;
+  background: rgba(6, 18, 24, 0.66);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wh_kf_composer:focus-within {
+  border-color: rgba(94, 242, 196, 0.55);
+  box-shadow: 0 0 0 3px rgba(94, 242, 196, 0.1);
+}
+
+.wh_kf_input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 0;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: #ffffff;
+  background: transparent;
+}
+
+.wh_kf_input::placeholder {
+  color: #5f8288;
+}
+
+.wh_kf_send {
+  flex: none;
+  padding: 9px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #04140f;
+  background: linear-gradient(120deg, #5ef2c4, #7fd3ff);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.wh_kf_send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(94, 242, 196, 0.2);
+}
+
+.wh_kf_send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wh_kf_back {
+  flex: none;
+  align-self: center;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: #8fa5c9;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.wh_kf_back:hover {
+  color: #5ef2c4;
+}
+
+@media (max-width: 560px) {
+  .wh_kf_page {
+    width: calc(100% - 24px);
+    padding-top: 16px;
+  }
+
+  .wh_kf_header {
+    margin-bottom: 12px;
+  }
+
+  .wh_kf_subtitle {
+    display: none;
+  }
+
+  .wh_kf_chat {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .wh_kf_msg {
+    max-width: 90%;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "wuhuan-course-backend",
+  "version": "1.0.0",
+  "description": "吴欢课程项目后端",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "multer": "^2.5.0",
+    "mysql2": "^3.24.6",
+    "officeparser": "^8.4.1",
+    "word-extractor": "^1.0.4"
+  }
+}

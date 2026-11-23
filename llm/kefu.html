@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!-- 姓名：吴欢 | 学号: 24001011028 | 时间：2026-11-23 | 大模型：DeepSeek-V4.1-Flash -->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中华美食街在线客服 - 吴欢课程项目</title>
+  <link rel="stylesheet" href="css/wh_kefu.css">
+</head>
+<body>
+  <canvas id="wh_kf_canvas" class="wh_kf_canvas" aria-hidden="true"></canvas>
+
+  <div class="wh_kf_page">
+    <header class="wh_kf_header">
+      <p class="wh_kf_eyebrow">ZHONGHUA FOOD STREET · AI SERVICE</p>
+      <h1 class="wh_kf_title">中华美食街在线客服</h1>
+      <p class="wh_kf_subtitle">
+        接口 <code>POST /api/kefu/chat/stream</code> · 当前模型
+        <span id="wh_kf_model">deepseek-ai/DeepSeek-V3</span>
+      </p>
+    </header>
+
+    <main class="wh_kf_chat">
+      <div class="wh_kf_statusbar">
+        <span class="wh_kf_dot" aria-hidden="true"></span>
+        <span>客服小七 · 在线</span>
+        <label class="wh_kf_provider">
+          <span>模型平台</span>
+          <select id="wh_kf_provider" aria-label="选择模型平台">
+            <option value="siliconflow" selected>硅基流动</option>
+            <option value="qiniu">七牛云</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="wh_kf_messages" id="wh_kf_messages" aria-live="polite">
+        <div class="wh_kf_msg wh_kf_msg--ai">
+          <span class="wh_kf_msg_role">客服小七</span>
+          <div class="wh_kf_bubble">您好，我是中华美食街在线客服小七～ 您可以咨询本街的营业时间、招牌菜和配送范围，其他问题我会帮您转留言。</div>
+        </div>
+      </div>
+
+      <form class="wh_kf_composer" id="wh_kf_form" novalidate>
+        <input
+          class="wh_kf_input"
+          id="wh_kf_input"
+          type="text"
+          maxlength="4000"
+          autocomplete="off"
+          placeholder="请输入您要咨询的问题（营业时间 / 招牌菜 / 配送范围）"
+        >
+        <button class="wh_kf_send" type="submit" id="wh_kf_send">发送</button>
+      </form>
+    </main>
+
+    <a class="wh_kf_back" href="lab.html">← 返回首页导航</a>
+  </div>
+
+  <script src="js/wh_kefu.js"></script>
+</body>
+</html>

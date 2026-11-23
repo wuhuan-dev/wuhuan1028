@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!-- 姓名：吴欢 | 学号: 24001011028 | 时间：2026-11-23 | 大模型：DeepSeek-V4.1-Flash -->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中华美食街知识库问答 - 吴欢课程项目</title>
+  <link rel="stylesheet" href="css/wh_kb.css">
+</head>
+<body>
+  <div class="wh_kb_page">
+    <header class="wh_kb_header">
+      <p class="wh_kb_eyebrow">RAG · KNOWLEDGE BASE</p>
+      <h1 class="wh_kb_title">中华美食街知识库问答</h1>
+      <p class="wh_kb_subtitle">
+        上传 <code>.docx / .pptx / .pdf / .txt</code> 等资料，AI 基于知识库内容回答
+      </p>
+    </header>
+
+    <main class="wh_kb_layout">
+      <aside class="wh_kb_panel">
+        <div class="wh_kb_panel_head">
+          <h2>知识库文件</h2>
+          <span id="wh_kb_count">0 个文件</span>
+        </div>
+
+        <form class="wh_kb_upload" id="wh_kb_upload_form">
+          <input id="wh_kb_file" type="file" accept=".doc,.docx,.ppt,.pptx,.pdf,.txt,.md" hidden>
+          <button class="wh_kb_pick" type="button" id="wh_kb_pick">选择文件</button>
+          <span class="wh_kb_filename" id="wh_kb_filename">未选择文件</span>
+          <button class="wh_kb_submit" type="submit" id="wh_kb_submit">上传</button>
+        </form>
+        <p class="wh_kb_hint" id="wh_kb_status">支持 doc、docx、pptx、pdf、txt，单个不超过 15MB</p>
+
+        <ul class="wh_kb_list" id="wh_kb_list">
+          <li class="wh_kb_empty">正在加载知识库文件…</li>
+        </ul>
+      </aside>
+
+      <section class="wh_kb_chat">
+        <div class="wh_kb_chat_head">
+          <span class="wh_kb_dot" aria-hidden="true"></span>
+          <span>知识库助手 · 在线</span>
+          <label class="wh_kb_provider">
+            <span>模型平台</span>
+            <select id="wh_kb_provider" aria-label="选择模型平台">
+              <option value="siliconflow" selected>硅基流动</option>
+              <option value="qiniu">七牛云</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="wh_kb_messages" id="wh_kb_messages" aria-live="polite">
+          <div class="wh_kb_msg wh_kb_msg--ai">
+            <span class="wh_kb_msg_role">知识库助手</span>
+            <div class="wh_kb_bubble">您好，我是中华美食街知识库助手。上传资料后，可以向我提问营业时间、招牌菜、配送规则等问题。</div>
+          </div>
+        </div>
+
+        <form class="wh_kb_composer" id="wh_kb_chat_form" novalidate>
+          <input
+            class="wh_kb_input"
+            id="wh_kb_input"
+            type="text"
+            maxlength="4000"
+            autocomplete="off"
+            placeholder="请输入要基于知识库回答的问题"
+          >
+          <button class="wh_kb_send" type="submit" id="wh_kb_send">发送</button>
+        </form>
+      </section>
+    </main>
+
+    <a class="wh_kb_back" href="lab.html">← 返回首页导航</a>
+  </div>
+
+  <script src="js/wh_kb.js"></script>
+</body>
+</html>
