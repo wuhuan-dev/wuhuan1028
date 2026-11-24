@@ -565,3 +565,51 @@
   wh_bindShots 隐藏破图并显示"截图待放入"提示，放入后自动展示。已创建 llm/shots 目录。
   另外发现 8028 被原项目后端占用（无 lab.html），已停止该进程并改用本项目的
   llm-backend 服务，验证 /lab.html 与 /api/kb/files 均返回 200。
+
+- **时间**: 2026-11-23 21:50
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> 为什么这样（截图：七牛云连发两条均报 "Too many requests for this free model"）→ 选择优化方案：前端 429 友好提示
+
+- **执行说明**: 原因是七牛免费模型 qiniu/conatus-free 的全局免费额度限流（free_campaign_global_limit），短时间请求过频返回 429，非代码 bug；后端已有 3 次退避重试，但限流窗口较长时仍会把错误透传给前端。排查中发现关键问题：8028 端口实际运行的是 D:\1028wuhuan\llm-backend\app.js（托管 llm/），与工作区 d:\gaojiwangye-daima\wuhuan 是两份已分叉的 AI 代码（运行版多 lab.html，工作区多 ai-chat/index/gallery/news 等页，kefu.html 也不同），导致此前只改工作区文件时页面不生效。修复：在 llm/js/wh_kefu.js 新增 whIsRateLimit（匹配 too many requests / free_campaign / 429 / 限流）、whStartCooldown / whStopCooldown；限流时气泡显示友好提示"当前模型平台免费额度请求过多（限流），请稍后重试，或切换到另一个平台继续对话"，发送按钮进入 5 秒"冷却中 Ns…"倒计时并禁用，切换平台下拉框立即 whStopCooldown 恢复按钮。同步修改了工作区同名文件。浏览器强制刷新后验证：模拟限流显示友好提示与冷却倒计时，切硅基流动立即恢复。未改接口与数据库。
+
+- **时间**: 2026-11-24 21:20
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> 怎么这个又看不了了，要启动服务吗（截图：asr.html 报 ERR_CONNECTION_REFUSED）
+
+- **执行说明**: 8028 无监听，运行版后端进程已被回收。执行 cd D:\1028wuhuan\llm-backend && node app.js 重启，验证 asr.html 返回 200、/api/kb/files 返回 code=0（9 个文件）。
+
+- **时间**: 2026-11-24 21:35
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> （截图：asr.html 报"语音识别失败：API Key 无效或已过期，请检查 backend/.env 中的 QINIU_API_KEY"）继续
+
+- **执行说明**: 诊断结论：QINIU_API_KEY 本身有效，GET /v1/models 返回 200 可通过认证；但 POST /v1/chat/completions 返回 403 account_billing_suspended（Account is suspended due to billing status），即七牛账户因账单状态被暂停（欠费或免费额度到期），是 ASR 与七牛客服同时失效的根因，非 Key 过期。原 models/wh_asr_model.js 把 401/403 一律映射为"API Key 无效或已过期"，属误导性提示。修复：重写 whReadErrorText —— 仅 401 判定 Key 无效；403 读取七牛返回的真实 message，命中 billing/suspended/欠费/余额/额度 时提示"七牛云账户因账单状态被暂停（可能欠费或免费额度到期），请到七牛云控制台充值或恢复账户后重试"。已同步工作区与运行版 wh_asr_model.js 并重启服务（PID 26740）。实测 /api/asr/transcribe 返回新提示，asr.html 200、知识库接口正常。未改接口路径与数据库。待用户处理：登录七牛控制台恢复账户，或接入硅基流动 ASR 作为备用。
+
+- **时间**: 2026-11-24 21:34
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> 这几张图片是4个任务的内容，帮我把图片放进去（附件 5 张截图：AI 客服硅基流动、AI 客服七牛云、知识库、图像识别、语音识别）
+
+- **执行说明**: 将 5 张截图复制到 llm/shots：kefu-siliconflow.png、kefu-qiniu.png、kb.png、vision.png、asr.png。修改 llm/lab.html：AI 客服卡片改为左右并排两张截图（硅基流动 / 七牛云切换后照常对话），新增 .wh_shot_pair 两列网格样式（窄屏单列）；四张卡片的 figcaption 改为与实际截图内容一致的说明，保留 wh_bindShots 在图片缺失时隐藏破图。
+
+- **时间**: 2026-11-24 21:43
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> 我打开的链接没有看见有截图啊，而且我只要截图放进四个任务里面就好了，不要有进入什么的入口，看图片示例，每个任务只放截图
+
+- **执行说明**: 按"每个任务只放截图"精简 llm/lab.html：删除四张卡片里的"进入 xxx"按钮、可勾选痕迹清单（含 wh_bindTrace 函数与 localStorage 逻辑）、接口证据行与"启动方式"说明块、截图下方的 figcaption 文字；卡片改为单列大图（AI 客服仍保留硅基流动/七牛两张并排）。同步清理失效的 wh_trace / wh_evi / wh_go / wh_how / figcaption 样式，更新文件头功能注释。线上链接看不到截图的原因是这 5 张 png 与页面改动尚未提交推送，GitHub Pages 仍是旧版本。
+
+- **时间**: 2026-11-24 21:45
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> `https://wuhuan-dev.github.io/wuhuan1028/llm/lab.html`我要的是这样的网址
+
+- **执行说明**: 按用户明确要求，将 llm/lab.html、llm/shots 下 5 张测试截图（kefu-siliconflow.png / kefu-qiniu.png / kb.png / vision.png / asr.png）与 wh_prompt.md 一起提交并推送到 GitHub，等待 GitHub Pages 部署后验证线上 lab.html 与截图均返回 200。说明：线上为 https，页面探测的后端地址是 http://localhost:8028，浏览器会按混合内容拦截，所以线上只保证截图展示，后端状态灯会显示未连接，属预期。
