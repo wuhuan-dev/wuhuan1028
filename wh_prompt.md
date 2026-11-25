@@ -613,3 +613,11 @@
 > `https://wuhuan-dev.github.io/wuhuan1028/llm/lab.html`我要的是这样的网址
 
 - **执行说明**: 按用户明确要求，将 llm/lab.html、llm/shots 下 5 张测试截图（kefu-siliconflow.png / kefu-qiniu.png / kb.png / vision.png / asr.png）与 wh_prompt.md 一起提交并推送到 GitHub，等待 GitHub Pages 部署后验证线上 lab.html 与截图均返回 200。说明：线上为 https，页面探测的后端地址是 http://localhost:8028，浏览器会按混合内容拦截，所以线上只保证截图展示，后端状态灯会显示未连接，属预期。
+
+- **时间**: 2026-11-25 19:35
+- **模型**: DeepSeek-V4.1-Flash
+- **提示词内容**:
+
+> 为什么这两个的页面看不见了（截图：index.html 第 10 张“成绩分析面板 Level 1”与第 11 张“成绩分析面板 Level 2”卡片）
+
+- **执行说明**: 原因：index.html 这两张卡片的 href 是 ./level1.html 与 ./level2.html，仓库里从未存在这两个文件（git 历史无记录），实际文件为 level1_1028wuhuan.html 与 starter-level2-1028-WH.html（另有 starter-level1-1028-WH.html），因此线上点击 404。修复：把两张卡片链接分别改为 ./level1_1028wuhuan.html 和 ./starter-level2-1028-WH.html，提交推送后验证线上可打开。
